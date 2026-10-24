@@ -42,6 +42,13 @@ impl ProjectVersion {
     }
   }
 
+  pub fn bumped_pre(&self, bump: Bump, id: &str) -> Result<Self, VersionError> {
+    match self {
+      Self::Sem(v) => bump.apply_pre(v, id).map(Self::Sem),
+      Self::Cal(_) => Err(VersionError::CalverPrerelease),
+    }
+  }
+
   pub fn render(&self, flavor: Flavor) -> String {
     match self {
       Self::Sem(v) => flavor.render_semver(v),
@@ -76,6 +83,17 @@ mod tests {
     assert_eq!(
       cal.bumped_on(Bump::Major, today).to_string(),
       "2026.10.24.1"
+    );
+    assert_eq!(
+      cal.bumped_pre(Bump::Patch, "rc"),
+      Err(VersionError::CalverPrerelease)
+    );
+    assert_eq!(
+      sem("1.2.3")
+        .bumped_pre(Bump::Patch, "rc")
+        .unwrap()
+        .to_string(),
+      "1.2.4-rc.1"
     );
   }
 }

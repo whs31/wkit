@@ -37,14 +37,14 @@ On Windows, 60+ of these files exist only as `.ps1` twins of a `.sh` script. Bui
 | --- | --- | --- |
 | `wkit_core` | ✅ | cargo-style `Shell` + progress, `ProcessBuilder`, semver/CalVer bumping and flavors (full, pkgver, numeric), language/build-system/rustfmt-channel detection, gitignore-aware source walking, uv-pinned tools |
 | `wkit_manifest` | ✅ | `wkit.toml` schema, shorthand forms, unused-key warnings, validation, project discovery. Reference: [`reference.toml`](wkit_manifest/tests/fixtures/reference.toml) |
-| `wkit_version` | M1 | per-kind editors that preserve formatting: conanfile class attribute, CMake `project(VERSION)`, Cargo via `toml_edit` (`[workspace.package]`/`[package]` + workspace members in `Cargo.lock`), PKGBUILD `pkgver`/`_source_version`/`pkgrel=1`, lua/regex |
-| `wkit_fmt` | M1 | rustfmt (channel auto-detected), clang-format batches in parallel, changed-file report, `--check` |
+| `wkit_version` | ✅ | format-preserving slot splicing: conanfile class attribute, CMake `project(VERSION)`, Cargo via spanned TOML (`[workspace.package]`/`[package]` + local `Cargo.lock` packages at the old version), PKGBUILD `_source_version`/`pkgver`/`pkgrel=1`, lua/regex; mismatch reports |
+| `wkit_fmt` | ✅ | rustfmt (channel auto-detected), clang-format batches in parallel, changed-file report, `--check` |
 | `wkit_check` | M2 | clippy, clang-tidy (compile db discovery, gcc-only flag stripping, parallel, result cache), custom checks, summary table |
 | `wkit_test` | M2 | cargo/nextest/ctest/catch2 runners, JUnit aggregation |
 | `wkit_build` | M3 | conan/cargo/cmake drivers, configure + preset resolution, `[[bin]]` resolution |
 | `wkit_package` | M4 | arch/deb/windows packaging, install/uninstall |
 | `wkit_ws` | M5 | multi-repo workspace management (`workspace.toml`/`workspace.lock` compatible) |
-| `wkit` | M1 | the binary: clap CLI, command dispatch, `[scripts]`, `wkit-<name>` external subcommands, `self-update` |
+| `wkit` | ✅ M1 | the binary: clap CLI, command dispatch, `[scripts]`, `wkit-<name>` external subcommands, `self-update`, `init`, `clean` |
 
 ## Milestones
 
@@ -54,16 +54,16 @@ On Windows, 60+ of these files exist only as `.ps1` twins of a `.sh` script. Bui
 - [x] PKGBUILD flavor: no dashes, numeric prereleases get a `pre` prefix so `vercmp` still sorts them first
 - [x] Numeric flavor for CMake (`project(VERSION)` rejects prereleases)
 
-### M1: the binary, bump, fmt, clean
+### M1: the binary, bump, fmt, clean ✅
 Enough to delete `version.sh`, `format.py` and `clean.sh`.
-- [ ] `wkit` crate. Global flags `-v/-q`, `--color`, `--manifest-path`, `-C <dir>`. Errors print as `error:` followed by `Caused by:`. Exit codes: a failed child's code is passed through, internal errors exit 101
-- [ ] `wkit bump [-M|-m|-p|-a <ver>] [--pre <id>] [--dry-run]`. With no flag it shows every file's version and flags mismatches. `--pre rc` starts or advances a prerelease (`1.2.3` → `1.2.4-rc.1` → `1.2.4-rc.2`). For calver, any bump means "next"
-- [ ] `wkit bump --commit [--tag]`: commit the version files and tag `<version>`
-- [ ] `wkit fmt [--check]` (alias `format`): `cargo fmt` or `cargo +nightly fmt`, then pinned clang-format via `uv tool run`
-- [ ] `wkit clean [--dry-run]`
-- [ ] `wkit run-script <name>` / `wkit x <name>` for `[scripts]`; unknown subcommands fall back to scripts, then to `wkit-<name>` binaries in PATH
-- [ ] `wkit self-update [--version <v>]`: compare with the crates.io sparse index (`index.crates.io/wk/it/wkit`). Prefer `cargo binstall wkit`, otherwise `cargo install wkit --locked --force`. Honor `project.wkit` requirements
-- [ ] `wkit init`: write `wkit.toml` from detection (languages, build system, version files found, rustfmt channel, test runners)
+- [x] `wkit` crate. Global flags `-v/-q`, `--color`, `--manifest-path`, `-C <dir>`. Errors print as `error:` followed by `Caused by:`. Exit codes: a failed child's code is passed through, internal errors exit 101
+- [x] `wkit bump [-M|-m|-p|-a <ver>] [--pre <id>] [--dry-run]`. With no flag it shows every file's version and flags mismatches. `--pre rc` starts or advances a prerelease (`1.2.3` → `1.2.4-rc.1` → `1.2.4-rc.2`). For calver, any bump means "next"
+- [x] `wkit bump --commit [--tag]`: commit the version files as `v<version>` and tag `<version>`
+- [x] `wkit fmt [--check] [-j N]` (alias `format`): `cargo fmt` or `cargo +nightly fmt`, then pinned clang-format via `uv tool run`
+- [x] `wkit clean [--dry-run]`
+- [x] `wkit run-script <name>` / `wkit x <name>` for `[scripts]`; unknown subcommands fall back to scripts, then to `wkit-<name>` binaries in PATH
+- [x] `wkit self-update [--version <v>]`: compare with the crates.io sparse index (`index.crates.io/wk/it/wkit`). Prefer `cargo binstall wkit`, otherwise `cargo install wkit --locked --force`. Honor `project.wkit` requirements
+- [x] `wkit init`: write `wkit.toml` from detection (languages, build system, version files found, test runners). The rustfmt channel stays auto-detected
 
 ### M2: check and test
 Enough to delete `check.py`, `clang_tools.py`, `check_versions.py` and `test.sh`.

@@ -2,7 +2,7 @@
 
 `wkit` is one Rust CLI that replaces per-repo Justfile scripts. Plan: [ROADMAP.md](ROADMAP.md).
 
-- Crates live at the repo root: `wkit_core` (shared primitives), `wkit_manifest` (`wkit.toml` schema).
+- Crates live at the repo root: `wkit` (the binary), `wkit_core` (shared primitives), `wkit_manifest` (`wkit.toml` schema), `wkit_version` (version files), `wkit_fmt` (formatters).
 - When the manifest schema changes, update `wkit_manifest/tests/fixtures/reference.toml` and the tests too.
 - Format with `just fmt`. Before finishing, run `just lint` (pedantic) and `just test`. MSRV is 1.88.
 - No extensive comments: express intent with names and tests. No doc-comment essays.

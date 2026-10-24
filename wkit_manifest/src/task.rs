@@ -28,11 +28,17 @@ pub(crate) struct TaskDetail {
 
 impl Task {
   pub fn to_process(&self, root: &std::path::Path) -> ProcessBuilder {
+    self.to_process_with(root, &[])
+  }
+
+  pub fn to_process_with(&self, root: &std::path::Path, extra: &[String]) -> ProcessBuilder {
     let cwd = root.join(self.cwd.as_deref().unwrap_or(std::path::Path::new(".")));
     self
       .env
       .iter()
-      .fold(self.run.to_process().cwd(cwd), |p, (k, v)| p.env(k, v))
+      .fold(self.run.to_process_with(extra).cwd(cwd), |p, (k, v)| {
+        p.env(k, v)
+      })
   }
 }
 

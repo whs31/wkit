@@ -1,3 +1,4 @@
+mod bytes;
 mod color_choice;
 mod elapsed;
 mod sink;
@@ -5,7 +6,7 @@ pub mod style;
 mod verbosity;
 
 use self::sink::Sink;
-pub use self::{color_choice::ColorChoice, elapsed::Elapsed, verbosity::Verbosity};
+pub use self::{bytes::Bytes, color_choice::ColorChoice, elapsed::Elapsed, verbosity::Verbosity};
 
 pub const STATUS_WIDTH: usize = 12;
 

@@ -22,6 +22,17 @@ pub(crate) struct VersionFileDetail {
 }
 
 impl VersionFile {
+  pub fn infer(path: impl Into<std::path::PathBuf>) -> Option<Self> {
+    let path = path.into();
+    let kind = VersionFileKind::infer(&path)?;
+    Some(Self {
+      path,
+      kind,
+      flavor: kind.default_flavor(),
+      pattern: None,
+    })
+  }
+
   pub fn patterns(&self) -> &[VersionPattern] {
     match (&self.pattern, self.kind) {
       (Some(pattern), _) => std::slice::from_ref(pattern),

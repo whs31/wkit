@@ -49,6 +49,9 @@ pub enum Error {
     stderr: String,
   },
 
+  #[error("failed to write output")]
+  Output(#[from] std::io::Error),
+
   #[error(transparent)]
   Version(#[from] VersionError),
 }

@@ -11,10 +11,27 @@ pub enum Command {
 
 impl Command {
   pub fn to_process(&self) -> ProcessBuilder {
+    self.to_process_with(&[])
+  }
+
+  pub fn to_process_with(&self, extra: &[String]) -> ProcessBuilder {
     match self {
-      Self::Shell(line) => ProcessBuilder::shell(line),
-      Self::Argv(argv) => ProcessBuilder::new(&argv[0]).args(&argv[1..]),
+      Self::Shell(_) => ProcessBuilder::shell(&self.line_with(extra)),
+      Self::Argv(argv) => ProcessBuilder::new(&argv[0]).args(&argv[1..]).args(extra),
     }
+  }
+
+  pub fn line_with(&self, extra: &[String]) -> String {
+    let (head, tail): (String, &[String]) = match self {
+      Self::Shell(line) => (line.clone(), &[]),
+      Self::Argv(argv) => (
+        wkit_core::process::ShellQuoted(&argv[0]).to_string(),
+        &argv[1..],
+      ),
+    };
+    tail.iter().chain(extra).fold(head, |line, arg| {
+      format!("{line} {}", wkit_core::process::ShellQuoted(arg))
+    })
   }
 
   pub(crate) fn from_shorthand<T>(shorthand: Shorthand<T>) -> Result<Self, &'static str> {
@@ -61,6 +78,37 @@ mod tests {
         .to_process()
         .to_string(),
       "cargo fmt"
+    );
+  }
+
+  #[test]
+  fn lines_show_what_runs() {
+    let extra = ["a b".to_owned()];
+    assert_eq!(
+      Command::Shell("make all".into()).line_with(&extra),
+      "make all 'a b'"
+    );
+    assert_eq!(
+      Command::Argv(vec!["my tool".into(), "-x".into()]).line_with(&extra),
+      "'my tool' -x 'a b'"
+    );
+  }
+
+  #[test]
+  fn extra_args_are_appended() {
+    let extra = ["--check".to_owned(), "a b".to_owned()];
+    assert_eq!(
+      Command::Argv(vec!["cargo".into(), "fmt".into()])
+        .to_process_with(&extra)
+        .get_args(),
+      ["fmt", "--check", "a b"]
+    );
+    let shell = Command::Shell("make all".into()).to_process_with(&extra);
+    assert!(
+      shell
+        .get_args()
+        .last()
+        .is_some_and(|line| line == "make all --check 'a b'")
     );
   }
 

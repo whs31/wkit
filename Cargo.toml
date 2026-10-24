@@ -1,8 +1,11 @@
 [workspace]
 resolver = "3"
 members = [
+    "wkit",
     "wkit_core",
-    "wkit_manifest"
+    "wkit_manifest",
+    "wkit_fmt",
+    "wkit_version",
 ]
 
 [workspace.package]
@@ -15,12 +18,17 @@ homepage = "https://github.com/whs31/wkit"
 repository = "https://github.com/whs31/wkit"
 
 [workspace.dependencies]
-wkit_core = { path = "wkit_core" }
-wkit_manifest = { path = "wkit_manifest" }
+wkit_core = { path = "wkit_core", version = "0.1.0" }
+wkit_fmt = { path = "wkit_fmt", version = "0.1.0" }
+wkit_manifest = { path = "wkit_manifest", version = "0.1.0" }
+wkit_version = { path = "wkit_version", version = "0.1.0" }
 
 anstream = "1"
 anstyle = "1"
+anyhow = "1"
+clap = { version = "4.5", features = ["derive", "env", "string", "wrap_help"] }
 derive_more = { version = "2", features = ["display"] }
+globset = "0.4"
 ignore = "0.4"
 indicatif = "0.18"
 jiff = "0.2"
@@ -28,8 +36,10 @@ regex = "1"
 semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 serde_ignored = "0.1"
+serde_json = "1"
 thiserror = "2"
 toml = "1"
+ureq = "3"
 which = "8"
 
 tempfile = "3"

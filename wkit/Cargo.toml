@@ -1,0 +1,34 @@
+[package]
+name = "wkit"
+description = "One CLI for versioning, formatting, checking, building and testing C, C++ and Rust projects"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords = ["cli", "build", "conan", "cmake", "cargo"]
+categories = ["command-line-utilities", "development-tools"]
+
+[lints]
+workspace = true
+
+[dependencies]
+wkit_core.workspace = true
+wkit_fmt.workspace = true
+wkit_manifest.workspace = true
+wkit_version.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+globset.workspace = true
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+ureq.workspace = true
+which.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
