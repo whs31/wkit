@@ -47,7 +47,7 @@ fn ws_clones_reports_and_runs_commands_across_projects() {
     root.join("workspace.toml"),
     format!(
       "version = 1\n\n[[project]]\npath = \"tools/lint\"\nurl = \"{}\"\nbranch = \"main\"\n",
-      remote.display()
+      remote.display().to_string().replace('\\', "/")
     ),
   )
   .unwrap();
