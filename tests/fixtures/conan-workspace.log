@@ -1,0 +1,332 @@
+WARN: Workspace found: /work/radar
+WARN: experimental: The Workspace feature is experimental
+conanws.py doesn't exist in /work/radar, using default behavior
+
+======== Input profiles ========
+Profile host:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+Profile build:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+Adding '--build=editable' as build mode
+
+**************************************************
+*      Workspace computing the build order       *
+**************************************************
+
+
+======== Computing dependency graph for each package ========
+
+======== Computing the dependency graph for package: radar-core/0.5.0 ========
+
+======== Computing dependency graph ========
+Graph root
+    cli
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391 - Cache
+    radar-core/0.5.0 - Editable
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c - Cache
+
+======== Computing necessary packages ========
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391:44392ef7c9e5deaea596f41a1bddb9f0d6238cd1#760c345fcb9954479e1e0d337c077edf - Cache
+    radar-core/0.5.0:b712287d6ffae171545d01c96e9f2319a7c6be7b - EditableBuild
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c:f50aac3b9e5bf52c7da50601c4edd3c172e57fb4#464709beecdf219d53f094e2c9154947 - Cache
+
+Aggregating build-order for package: radar-core/0.5.0
+
+======== Computing the dependency graph for package: radar-app/0.5.0 ========
+
+======== Computing dependency graph ========
+cli11/2.7.2: WARN: cli11/2.7.2: package_type 'header-library' is defined, but 'shared' and/or 'header_only' options are present. The package_type will have precedence over the options regardless of their value.
+Graph root
+    cli
+Requirements
+    cli11/2.7.2#704b6fc8383dbb05a6cf698c01ed74a2 - Cache
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391 - Cache
+    radar-app/0.5.0 - Editable
+    radar-core/0.5.0 - Editable
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c - Cache
+Resolved version ranges
+    radar-core/[>=0.5 <1]: radar-core/0.5.0
+
+======== Computing necessary packages ========
+Requirements
+    cli11/2.7.2#704b6fc8383dbb05a6cf698c01ed74a2:da39a3ee5e6b4b0d3255bfef95601890afd80709#b6070eea7f3db4fe8434faee40ff3f11 - Cache
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391:44392ef7c9e5deaea596f41a1bddb9f0d6238cd1#760c345fcb9954479e1e0d337c077edf - Cache
+    radar-app/0.5.0:d441d94d0f9766433fbf479335d9fc382cdeac21 - EditableBuild
+    radar-core/0.5.0:b712287d6ffae171545d01c96e9f2319a7c6be7b - EditableBuild
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c:f50aac3b9e5bf52c7da50601c4edd3c172e57fb4#464709beecdf219d53f094e2c9154947 - Cache
+
+Aggregating build-order for package: radar-app/0.5.0
+
+**************************************************
+*        Workspace building each package         *
+**************************************************
+
+
+**************************************************
+*       Workspace build: radar-core/0.5.0        *
+**************************************************
+
+Command: build "/work/radar/core/conanfile.py"   --name=radar-core --version=0.5.0  --lockfile= -vstatus
+
+
+======== Input profiles ========
+Profile host:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+Profile build:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+
+======== Computing dependency graph ========
+Graph root
+    conanfile.py (radar-core/0.5.0): /work/radar/core/conanfile.py
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391 - Cache
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c - Cache
+
+======== Computing necessary packages ========
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391:44392ef7c9e5deaea596f41a1bddb9f0d6238cd1#760c345fcb9954479e1e0d337c077edf - Cache
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c:f50aac3b9e5bf52c7da50601c4edd3c172e57fb4#464709beecdf219d53f094e2c9154947 - Cache
+
+======== Installing packages ========
+fmt/12.1.0: Already installed! (1 of 2)
+spdlog/1.17.0: Already installed! (2 of 2)
+
+======== Finalizing install (deploy, generators) ========
+>>> Generate step for conanfile.py (radar-core/0.5.0)
+Generators folder: /work/radar/core/build/Debug/generators
+Calling generate() method in recipe
+CMakeDeps necessary find_package() and targets for your CMakeLists.txt
+    find_package(spdlog)
+    target_link_libraries(... spdlog::spdlog)
+CMakeToolchain generated: conan_toolchain.cmake
+CMakeToolchain: Preset 'conan-debug' added to CMakePresets.json.
+    (cmake>=3.23) cmake --preset conan-debug
+    (cmake<3.23) cmake <path> -G Ninja
+                 -DCMAKE_TOOLCHAIN_FILE=<output_folder>/generators/conan_toolchain.cmake 
+                 -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Debug
+CMakeToolchain generated: /work/radar/core/build/Debug/generators/CMakePresets.json
+CMakeToolchain generated: /work/radar/core/CMakeUserPresets.json
+Generating aggregated env files
+Generated aggregated env files: ['conanbuild.sh', 'conanrun.sh']
+
+======== Calling build() ========
+>>> Build step for conanfile.py (radar-core/0.5.0)
+conanfile.py (radar-core/0.5.0): Calling build()
+conanfile.py (radar-core/0.5.0): Running CMake.configure()
+conanfile.py (radar-core/0.5.0): RUN: cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="generators/conan_toolchain.cmake" -DCMAKE_INSTALL_PREFIX="/work/radar/core" -DCMAKE_POLICY_DEFAULT_CMP0091="NEW" -DBUILD_TESTING="OFF" -DCMAKE_BUILD_TYPE="Debug" "/work/radar/core"
+-- Using Conan toolchain: /work/radar/core/build/Debug/generators/conan_toolchain.cmake
+-- Conan toolchain: Defining architecture flag: -m64
+-- Conan toolchain: C++ Standard 23 with extensions ON
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Warning: Standard CMAKE_CXX_STANDARD value defined in conan_toolchain.cmake to 23 has been modified to 20 by /work/radar/core/CMakeLists.txt
+-- Conan: Component target declared 'spdlog::spdlog'
+-- Conan: Component target declared 'fmt::fmt'
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+CMake Warning (unused-cli):
+  Manually-specified variables were not used by the project:
+
+    BUILD_TESTING
+
+
+-- Build files have been written to: /work/radar/core/build/Debug
+
+conanfile.py (radar-core/0.5.0): Running CMake.build()
+conanfile.py (radar-core/0.5.0): RUN: cmake --build "/work/radar/core/build/Debug" -- -j12
+[1/2] Building CXX object CMakeFiles/radar_core.dir/src/core.cpp.o
+[2/2] Linking CXX static library libradar_core.a
+
+
+**************************************************
+*        Workspace build: radar-app/0.5.0        *
+**************************************************
+
+Command: build "/work/radar/app/conanfile.py"   --name=radar-app --version=0.5.0  --lockfile= -vstatus
+
+
+======== Input profiles ========
+Profile host:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+Profile build:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+
+======== Computing dependency graph ========
+cli11/2.7.2: WARN: cli11/2.7.2: package_type 'header-library' is defined, but 'shared' and/or 'header_only' options are present. The package_type will have precedence over the options regardless of their value.
+Graph root
+    conanfile.py (radar-app/0.5.0): /work/radar/app/conanfile.py
+Requirements
+    cli11/2.7.2#704b6fc8383dbb05a6cf698c01ed74a2 - Cache
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391 - Cache
+    radar-core/0.5.0 - Editable
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c - Cache
+Resolved version ranges
+    radar-core/[>=0.5 <1]: radar-core/0.5.0
+
+======== Computing necessary packages ========
+Requirements
+    cli11/2.7.2#704b6fc8383dbb05a6cf698c01ed74a2:da39a3ee5e6b4b0d3255bfef95601890afd80709#b6070eea7f3db4fe8434faee40ff3f11 - Cache
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391:44392ef7c9e5deaea596f41a1bddb9f0d6238cd1#760c345fcb9954479e1e0d337c077edf - Cache
+    radar-core/0.5.0:b712287d6ffae171545d01c96e9f2319a7c6be7b - Editable
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c:f50aac3b9e5bf52c7da50601c4edd3c172e57fb4#464709beecdf219d53f094e2c9154947 - Cache
+
+======== Installing packages ========
+cli11/2.7.2: Already installed! (1 of 4)
+fmt/12.1.0: Already installed! (2 of 4)
+spdlog/1.17.0: Already installed! (3 of 4)
+
+======== Finalizing install (deploy, generators) ========
+>>> Generate step for conanfile.py (radar-app/0.5.0)
+Generators folder: /work/radar/app/build/Debug/generators
+Calling generate() method in recipe
+CMakeDeps necessary find_package() and targets for your CMakeLists.txt
+    find_package(radar-core)
+    find_package(CLI11)
+    target_link_libraries(... radar::core CLI11::CLI11)
+CMakeToolchain generated: conan_toolchain.cmake
+CMakeToolchain: Preset 'conan-debug' added to CMakePresets.json.
+    (cmake>=3.23) cmake --preset conan-debug
+    (cmake<3.23) cmake <path> -G Ninja
+                 -DCMAKE_TOOLCHAIN_FILE=<output_folder>/generators/conan_toolchain.cmake 
+                 -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Debug
+CMakeToolchain generated: /work/radar/app/build/Debug/generators/CMakePresets.json
+CMakeToolchain generated: /work/radar/app/CMakeUserPresets.json
+Generating aggregated env files
+Generated aggregated env files: ['conanbuild.sh', 'conanrun.sh']
+
+======== Calling build() ========
+>>> Build step for conanfile.py (radar-app/0.5.0)
+conanfile.py (radar-app/0.5.0): Calling build()
+conanfile.py (radar-app/0.5.0): Running CMake.configure()
+conanfile.py (radar-app/0.5.0): RUN: cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="generators/conan_toolchain.cmake" -DCMAKE_INSTALL_PREFIX="/work/radar/app" -DCMAKE_POLICY_DEFAULT_CMP0091="NEW" -DBUILD_TESTING="OFF" -DCMAKE_BUILD_TYPE="Debug" "/work/radar/app"
+-- Using Conan toolchain: /work/radar/app/build/Debug/generators/conan_toolchain.cmake
+-- Conan toolchain: Defining architecture flag: -m64
+-- Conan toolchain: C++ Standard 23 with extensions ON
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Warning: Standard CMAKE_CXX_STANDARD value defined in conan_toolchain.cmake to 23 has been modified to 20 by /work/radar/app/CMakeLists.txt
+-- Conan: Target declared 'radar::core'
+-- Conan: Component target declared 'spdlog::spdlog'
+-- Conan: Component target declared 'fmt::fmt'
+-- Conan: Target declared 'CLI11::CLI11'
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+CMake Warning (unused-cli):
+  Manually-specified variables were not used by the project:
+
+    BUILD_TESTING
+
+
+-- Build files have been written to: /work/radar/app/build/Debug
+
+conanfile.py (radar-app/0.5.0): Running CMake.build()
+conanfile.py (radar-app/0.5.0): RUN: cmake --build "/work/radar/app/build/Debug" -- -j12
+[1/2] Building CXX object CMakeFiles/radar-app.dir/src/main.cpp.o
+[2/2] Linking CXX executable radar-app
+

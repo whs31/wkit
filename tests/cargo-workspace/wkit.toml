@@ -1,0 +1,27 @@
+[project]
+name = "telemetry"
+description = "Cargo workspace with nightly rustfmt, nextest and an Arch package"
+languages = ["rust"]
+default-run = "telemetry"
+
+[version]
+files = ["Cargo.toml", "pkg/arch/PKGBUILD"]
+
+[check.clippy]
+all-targets = true
+deny-warnings = true
+
+[build.cargo]
+locked = true
+
+[[bin]]
+name = "telemetry"
+package = "telemetry-cli"
+args = ["samples.csv"]
+
+[[test.suite]]
+runner = "nextest"
+profile = "ci"
+
+[clean]
+extra = ["junit.xml"]

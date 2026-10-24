@@ -1,0 +1,8 @@
+[project]
+name = "flightlog"
+description = "Calendar-versioned Conan application (YYYY.MM.DD[.N])"
+languages = ["cpp"]
+
+[version]
+scheme = "calver"
+files = ["conanfile.py", "CMakeLists.txt", "packaging/arch/PKGBUILD"]

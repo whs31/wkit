@@ -1,0 +1,154 @@
+
+======== Input profiles ========
+Profile host:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+Profile build:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+
+======== Computing dependency graph ========
+Graph root
+    cli
+Requirements
+    zlib/1.3.1#cac0f6daea041b0ccf42934163defb20 - Cache
+
+======== Computing necessary packages ========
+zlib/1.3.1: Forced build from source
+Requirements
+    zlib/1.3.1#cac0f6daea041b0ccf42934163defb20:fc02116d9abffcf2db40444d81555e88c337b32d - Build
+
+======== Installing packages ========
+
+-------- Installing package zlib/1.3.1 (1 of 1) --------
+Building from source zlib/1.3.1:fc02116d9abffcf2db40444d81555e88c337b32d
+zlib/1.3.1: settings: os=Linux arch=x86_64 compiler=gcc compiler.version=16 build_type=Debug
+zlib/1.3.1: options: fPIC=True shared=False
+>>> Source step
+Copying sources to build folder
+Sources in /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/src
+>>> Generate step for zlib/1.3.1
+Generators folder: /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/build/Debug/generators
+Calling generate() method in recipe
+CMakeToolchain generated: conan_toolchain.cmake
+CMakeToolchain generated: /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/build/Debug/generators/CMakePresets.json
+CMakeToolchain generated: /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/src/CMakeUserPresets.json
+Generating aggregated env files
+Generated aggregated env files: ['conanbuild.sh', 'conanrun.sh']
+Building your package in /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b
+>>> Build step for zlib/1.3.1
+zlib/1.3.1: Calling build()
+zlib/1.3.1: Apply patch (conan): separate static/shared builds, disable debug suffix
+zlib/1.3.1: Running CMake.configure()
+zlib/1.3.1: RUN: cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="generators/conan_toolchain.cmake" -DCMAKE_INSTALL_PREFIX="/home/user/.conan2/p/b/zlib6d3b5d7482a0e/p" -DCMAKE_POLICY_DEFAULT_CMP0091="NEW" -DBUILD_TESTING="OFF" -DCMAKE_BUILD_TYPE="Debug" "/home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/src"
+-- Using Conan toolchain: /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/build/Debug/generators/conan_toolchain.cmake
+-- Conan toolchain: Setting CMAKE_POSITION_INDEPENDENT_CODE=ON (options.fPIC)
+-- Conan toolchain: Defining architecture flag: -m64
+-- Conan toolchain: Setting BUILD_SHARED_LIBS = OFF
+-- The C compiler identification is GNU 16.2.1
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of off64_t
+-- Check size of off64_t - done
+-- Looking for fseeko
+-- Looking for fseeko - found
+-- Looking for unistd.h
+-- Looking for unistd.h - found
+-- Renaming
+--     /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/src/zconf.h
+-- to 'zconf.h.included' because this file is included with zlib
+-- but CMake generates it automatically in the build directory.
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+CMake Warning (unused-cli):
+  Manually-specified variables were not used by the project:
+
+    BUILD_TESTING
+
+
+-- Build files have been written to: /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/build/Debug
+
+zlib/1.3.1: Running CMake.build()
+zlib/1.3.1: RUN: cmake --build "/home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/build/Debug" -- -j12
+[1/16] Building C object CMakeFiles/zlib.dir/compress.c.o
+[2/16] Building C object CMakeFiles/zlib.dir/inftrees.c.o
+[3/16] Building C object CMakeFiles/zlib.dir/gzclose.c.o
+[4/16] Building C object CMakeFiles/zlib.dir/inffast.c.o
+[5/16] Building C object CMakeFiles/zlib.dir/gzlib.c.o
+[6/16] Building C object CMakeFiles/zlib.dir/gzread.c.o
+[7/16] Building C object CMakeFiles/zlib.dir/infback.c.o
+[8/16] Building C object CMakeFiles/zlib.dir/adler32.c.o
+[9/16] Building C object CMakeFiles/zlib.dir/gzwrite.c.o
+[10/16] Building C object CMakeFiles/zlib.dir/inflate.c.o
+[11/16] Building C object CMakeFiles/zlib.dir/uncompr.c.o
+[12/16] Building C object CMakeFiles/zlib.dir/crc32.c.o
+[13/16] Building C object CMakeFiles/zlib.dir/deflate.c.o
+[14/16] Building C object CMakeFiles/zlib.dir/zutil.c.o
+[15/16] Building C object CMakeFiles/zlib.dir/trees.c.o
+[16/16] Linking C static library libz.a
+
+zlib/1.3.1: Package 'fc02116d9abffcf2db40444d81555e88c337b32d' built
+zlib/1.3.1: Build folder /home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/build/Debug
+>>> Package step for zlib/1.3.1:fc02116d9abffcf2db40444d81555e88c337b32d
+Packaging in folder /home/user/.conan2/p/b/zlib6d3b5d7482a0e/p
+Calling package()
+Running CMake.install()
+RUN: cmake --install "/home/user/.conan2/p/b/zlib6d3b5d7482a0e/b/build/Debug" --prefix "/home/user/.conan2/p/b/zlib6d3b5d7482a0e/p"
+-- Install configuration: "Debug"
+-- Installing: /home/user/.conan2/p/b/zlib6d3b5d7482a0e/p/lib/libz.a
+-- Installing: /home/user/.conan2/p/b/zlib6d3b5d7482a0e/p/include/zconf.h
+-- Installing: /home/user/.conan2/p/b/zlib6d3b5d7482a0e/p/include/zlib.h
+
+package(): Packaged 1 file: LICENSE
+package(): Packaged 1 '.a' file: libz.a
+package(): Packaged 2 '.h' files: zconf.h, zlib.h
+Created package revision 883b9e261fbc1471e6b23e382df1eebc
+Package 'fc02116d9abffcf2db40444d81555e88c337b32d' created
+Full package reference: zlib/1.3.1#cac0f6daea041b0ccf42934163defb20:fc02116d9abffcf2db40444d81555e88c337b32d#883b9e261fbc1471e6b23e382df1eebc
+Package folder /home/user/.conan2/p/b/zlib6d3b5d7482a0e/p
+
+======== Finalizing install (deploy, generators) ========
+>>> Generate step for cli
+Generators folder: /work
+Generating aggregated env files
+Generated aggregated env files: ['conanbuild.sh', 'conanrun.sh']
+Install finished successfully

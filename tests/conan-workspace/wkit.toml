@@ -1,0 +1,14 @@
+[project]
+name = "radar-suite"
+description = "Conan workspace: an application depending on a sibling library"
+languages = ["cpp"]
+
+[version]
+source = "core/conanfile.py"
+files = ["core/conanfile.py", "core/CMakeLists.txt", "app/conanfile.py", "app/CMakeLists.txt"]
+
+[build]
+system = "conan"
+
+[build.conan]
+workspace = true

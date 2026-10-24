@@ -1,0 +1,21 @@
+# Maintainer: wkit tests <wkit@example.com>
+pkgname=flightlog
+pkgver=2026.10.24.2
+pkgrel=1
+pkgdesc="Mock calendar-versioned application for wkit tests"
+arch=('x86_64')
+license=('MIT')
+depends=('fmt')
+makedepends=('cmake')  # Conan comes from the build host
+source=("${pkgname}-${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "${pkgname}-${pkgver}"
+  conan build . --build=missing -s build_type=Release
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  cmake --install build/Release --prefix "${pkgdir}/usr"
+}

@@ -1,0 +1,9 @@
+[project]
+name = "wkit"
+languages = ["rust"]
+
+[version]
+files = ["Cargo.toml", "pkg/arch/PKGBUILD"]
+
+[[test.suite]]
+runner = "cargo"

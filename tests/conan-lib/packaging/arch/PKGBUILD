@@ -1,0 +1,22 @@
+# Maintainer: wkit tests <wkit@example.com>
+pkgname=geodesy
+_source_version=2.4.1
+pkgver=2.4.1
+pkgrel=3
+pkgdesc="Mock geodesy library for wkit tests"
+arch=('x86_64')
+license=('MIT')
+depends=('spdlog')
+makedepends=('cmake')  # Conan comes from the build host
+source=("${pkgname}-${_source_version}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "${pkgname}-${_source_version}"
+  conan build . --build=missing -s build_type=Release
+}
+
+package() {
+  cd "${pkgname}-${_source_version}"
+  cmake --install build/Release --prefix "${pkgdir}/usr"
+}

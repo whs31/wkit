@@ -1,0 +1,46 @@
+
+======== Input profiles ========
+Profile host:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+Profile build:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+
+======== Computing dependency graph ========
+nonexistent/1.0: Not found in local cache, looking in remotes...
+nonexistent/1.0: Checking remote: conancenter
+Connecting to remote 'conancenter' anonymously
+Graph root
+    cli
+ERROR: Package 'nonexistent/1.0' not resolved: Unable to find 'nonexistent/1.0' in remotes. Required by 'cli'

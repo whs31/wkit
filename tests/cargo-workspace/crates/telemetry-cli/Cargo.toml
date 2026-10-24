@@ -1,0 +1,13 @@
+[package]
+name = "telemetry-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "telemetry"
+path = "src/main.rs"
+
+[dependencies]
+telemetry.workspace = true
+anyhow.workspace = true

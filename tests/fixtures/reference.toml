@@ -1,0 +1,198 @@
+# Reference wkit.toml: every section and key, with defaults noted.
+# Only [project].languages is required.
+
+[project]
+name = "fallback-points"                  # default: directory name
+description = "Emergency landing points"
+languages = ["cpp", "rust"]               # "c", "cpp" (alias "c++"), "rust"
+default-run = "mms"                       # like cargo's package.default-run
+wkit = ">=0.1"                            # minimal wkit version for this manifest
+
+[version]
+scheme = "semver"                         # "semver" (default) | "calver" (YYYY.MM.DD[.N])
+source = "conanfile.py"                   # reference file; default: first entry of `files`
+files = [
+  "conanfile.py",                         # kind inferred from the file name
+  "CMakeLists.txt",                       # project(... VERSION) -> numeric flavor (no prerelease)
+  "Cargo.toml",                           # [workspace.package] or [package]; Cargo.lock follows
+  "packaging/arch/PKGBUILD",              # pkgver without dashes, _source_version keeps the full one
+  "src/plugin/assets/meta.lua",           # mms.Version.parse("x") or version = "x"
+  { path = "include/radar/version.h", pattern = '#define GKT_VERSION_STRING "(?<version>[^"]*)"' },
+  { path = "docs/VERSION", kind = "regex", pattern = '^(\S+)$', flavor = "numeric" },
+]
+
+[tools]                                   # pinned through `uv tool run`; defaults exist for clang-*
+clang-format = "23.1.3"
+clang-tidy = { version = "22.1.8" }
+black = { package = "black", version = "25.9.0" }
+qmllint = "system"                        # whatever is in PATH
+run-clang-tidy = { path = "tools/run-clang-tidy" }
+
+[format.rust]
+enabled = true                            # default: Rust in languages
+channel = "nightly"                       # default: nightly iff rustfmt.toml has unstable_features = true
+args = []
+
+[format.cpp]
+enabled = true                            # default: C or C++ in languages
+extensions = ["c", "cc", "cpp", "cxx", "h", "hh", "hpp", "hxx", "cu"]
+include = []                              # gitignore-style globs; empty = whole tree
+exclude = ["/build/", "/vendor/", "/packaging/", "/cmake-build-*/"]
+
+[format.qmlformat]
+enabled = true                            # default: .qmlformat.ini exists
+extensions = ["qml"]
+args = ["--normalize"]
+
+[format.black]
+include = ["/scripts/"]                   # default enabled: pyproject.toml has [tool.black]
+
+[format.stylua]
+enabled = false                           # default: stylua.toml or .stylua.toml exists
+
+[check]
+format = true                             # run formatters in check mode
+versions = true                           # every version file must agree
+secrets = true                            # no tokens or private keys in tracked files
+whitespace = false                        # `git diff --check HEAD`: no whitespace errors in uncommitted changes
+pre-commit = true                         # .pre-commit-config.yaml revs match [tools] pins
+
+[check.clippy]
+toolchain = "stable"
+all-targets = true
+deny-warnings = true
+features = ["fake"]
+all-features = false
+args = []
+
+[check.clang-tidy]
+build-dir = "build/RelWithDebInfo"        # default: newest build/*/compile_commands.json
+dirs = ["src", "tests"]                   # translation units and headers to analyze
+strip-flags = ["-mno-direct-extern-access"]
+warnings-as-errors = true
+cache = true
+
+[check.qmllint]
+enabled = true                            # default: false
+include = ["/src/qml/"]
+args = ["-I", "build/Release"]
+
+[check.mms]
+enabled = true                            # default: exactly one meta.lua in the tree
+meta = "src/plugin/meta.lua"
+
+[[check.custom]]
+name = "plugin-meta"
+description = "MMS plugin metadata is valid"
+run = ["python3", "scripts/check_meta.py"]
+
+[[check.custom]]
+name = "qml"
+run = "qmllint -I build/Release qml/*.qml"
+cwd = "src/plugin"
+env = { QT_QPA_PLATFORM = "offscreen" }
+
+[build]
+system = "conan"                          # default: conanfile.py > Cargo.toml > CMakeLists.txt
+link-compile-commands = true              # symlink ./compile_commands.json to the active build
+
+[build.conan]
+profile-host = "default"
+profile-build = "default"
+settings = { "compiler.cppstd" = "gnu23" }
+conf = { "tools.build:jobs" = 4, "core:non_interactive" = true }
+build-missing = true
+test-option = "test"                      # default: inferred from the conanfile options; toggled on by `wkit test`
+workspace = false                         # `conan workspace build` instead of `conan build`
+args = ["-vwarning"]
+
+[build.cargo]
+toolchain = "stable"
+package = "xlink"
+features = []
+all-features = false
+no-default-features = false
+locked = true
+args = []
+
+[conan.sync]                              # `wkit conan sync`: upload the resolved graph from the local cache
+remote = "radar"
+check = true
+force = false
+
+[[bin]]
+name = "mms"
+path = "build/{build-type}/bin/mms{exe}"
+args = ["--config", "config/dev.toml"]
+env = { QT_QPA_PLATFORM = "xcb" }
+cwd = "run"
+
+[[bin]]
+name = "xlink"
+package = "xlink"
+
+[test]
+junit-dir = "build/junit"                 # default: build/junit; `wkit test --junit` merges suites into junit.xml
+
+[[test.suite]]
+runner = "nextest"
+profile = "ci"
+
+[[test.suite]]
+name = "unit"
+runner = "catch2"
+binary = "mms_tests"
+build-dir = "build/{build-type}"
+filter = "~[!benchmark]"
+args = ["--order", "rand"]
+env = { QT_QPA_PLATFORM = "offscreen" }
+
+[[test.suite]]
+runner = "ctest"
+build-dir = "build/{build-type}"
+
+[clean]
+extra = ["run/out", "*.pkg.tar.zst"]      # appended to the defaults; `paths` replaces them
+
+[package]                                 # `wkit package arch|deb|windows`
+name = "mms"                              # default: project name
+set-option = "deployment_set"             # Conan option chosen by `--set`; other sets package as `<name>-<set>`
+output = "build/package"                  # default: build/package (target/package for cargo)
+license = "LICENSE"                       # default: LICENSE when present
+exclude = ["include", "lib/cmake", "lib/pkgconfig"]  # removed from the `cmake --install` tree
+files = [{ from = "scripts/register.sh", to = "/usr/share/mms/scripts/", mode = "755" }]
+stage = ["bash", "scripts/verify-stage.sh"]  # runs on the staged tree; sees WKIT_STAGE_DIR, WKIT_PACKAGE_*
+
+[package.deb]                             # native projects; cargo projects use cargo-deb
+maintainer = "whs31 <whs31@github.io>"
+description = "MMS ground control"        # default: project.description
+section = "utils"
+priority = "optional"
+architecture = "amd64"                    # default: the host architecture
+depends = ["libc6 (>= 2.28)", "rmms-qt6 (>= 6.11.1)"]
+breaks = ["gcs2"]
+replaces = ["gcs2"]
+prefix = "/usr"                           # where the install tree lands
+scripts = "packaging/debian"              # preinst/postinst/prerm/postrm/triggers when present
+
+[package.arch]
+dir = "packaging/arch"                    # default: packaging/arch or pkg/arch, whichever has a PKGBUILD
+
+[package.windows]
+generator = "nsis"                        # nsis | wix | zip, through CPack
+icon = "assets/icon.ico"
+
+[install]                                 # `wkit install` when the distro has no package for the project
+prefix = "/opt/mms"                       # `cmake --install` target
+files = [
+  { from = "target/release/relay{exe}", to = "/usr/bin/relay", mode = "755" },
+  { from = "config/relay.toml", to = "/etc/relay/relay.toml", config = true },  # kept when present
+  { from = "lua/*.lua", to = "/etc/relay/lua/" },
+]
+tmpfiles = ["packaging/relay.tmpfiles"]   # installed to /usr/lib/tmpfiles.d/ and applied
+services = ["systemd/relay.service"]      # installed, reloaded and enabled
+remove = ["/usr/share/pixmaps/relay.png"] # legacy paths `wkit uninstall` also removes
+
+[scripts]
+graph = "conan graph info . --format=html > docs/graph.html"
+golden = { run = ["bash", "scripts/update-golden.sh"], description = "Regenerate golden files" }

@@ -1,0 +1,38 @@
+[project]
+name = "groundlink"
+description = "Conan C++ application with a prerelease version, MMS plugin metadata and GoogleTest"
+languages = ["cpp"]
+default-run = "groundlink"
+
+[version]
+source = "conanfile.py"
+files = ["conanfile.py", "CMakeLists.txt", "src/plugin/assets/meta.lua"]
+
+[[bin]]
+name = "groundlink"
+path = "build/{build-type}/groundlink{exe}"
+args = ["--config", "config/dev.json"]
+
+[package]
+set-option = "deployment_set"
+
+[package.deb]
+maintainer = "wkit tests <wkit@example.com>"
+depends = ["zlib1g"]
+
+[[check.custom]]
+name = "plugin-meta"
+description = "MMS plugin metadata is complete"
+run = ["python3", "scripts/check_meta.py"]
+
+[[test.suite]]
+runner = "ctest"
+
+[clean]
+extra = ["run/out"]
+
+[scripts]
+graph = { run = "conan graph info . --format=html > graph.html", description = "Render the dependency graph" }
+
+[check.qmllint]
+enabled = true

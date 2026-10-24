@@ -1,0 +1,90 @@
+---
+stages:
+  - build
+  - test
+  - package
+  - publish
+
+include:
+  - project: "developers/v2/ci"
+    ref: main
+    file: "v2/cargo.yml"
+    inputs:
+      package: "wkit"
+  - project: "developers/v2/ci"
+    ref: main
+    file: "v2/debian.yml"
+  - project: "developers/v2/ci"
+    ref: main
+    file: "v2/archlinux.yml"
+    inputs:
+      package_dir: "target/package"
+
+build:linux:
+  extends: .v2:cargo:build:linux
+
+# rustfmt.toml needs nightly rustfmt; formatting is checked on GitHub.
+test:linux:
+  extends: .v2:cargo:test:linux
+  script:
+    - cargo clippy --all-targets --locked -- -D warnings
+    - cargo test --locked
+
+check:tag:
+  extends: .v2:cargo:base
+  stage: test
+  needs: []
+  cache: []
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  script:
+    - |
+      VERSION="$(
+        cargo metadata --no-deps --format-version 1 \
+          | python3 -c 'import json, sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"] == "wkit"))'
+      )"
+      if [ "$CI_COMMIT_TAG" != "$VERSION" ]; then
+        echo "Tag $CI_COMMIT_TAG does not match Cargo.toml version $VERSION" >&2
+        exit 1
+      fi
+
+package:debian:
+  extends: .v2:cargo:base
+  stage: package
+  needs: []
+  script:
+    - if ! command -v cargo-deb >/dev/null 2>&1; then cargo install --locked cargo-deb; fi
+    - rm -rf target/package
+    - just package-deb
+  artifacts:
+    name: "$CI_PROJECT_NAME-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-debian"
+    expire_in: 1 week
+    paths:
+      - target/package/*.deb
+
+package:archlinux:
+  extends: .v2:archlinux:build
+
+publish:debian:
+  extends: .v2:debian:upload
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  needs:
+    - job: check:tag
+      artifacts: false
+    - job: test:linux
+      artifacts: false
+    - job: package:debian
+      artifacts: true
+  before_script:
+    - cp target/package/*.deb .
+
+publish:archlinux:
+  extends: .v2:archlinux:publish
+  needs:
+    - job: check:tag
+      artifacts: false
+    - job: test:linux
+      artifacts: false
+    - job: package:archlinux
+      artifacts: true

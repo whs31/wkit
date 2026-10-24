@@ -1,0 +1,21 @@
+# Maintainer: wkit tests <wkit@example.com>
+pkgname=telemetry
+_source_version=0.7.2
+pkgver=0.7.2
+pkgrel=1
+pkgdesc="Mock telemetry tools for wkit tests"
+arch=('x86_64')
+license=('MIT')
+makedepends=('cargo')
+source=("${pkgname}-${_source_version}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "${pkgname}-${_source_version}"
+  cargo build --release --locked
+}
+
+package() {
+  cd "${pkgname}-${_source_version}"
+  install -Dm755 target/release/telemetry "${pkgdir}/usr/bin/telemetry"
+}
