@@ -1,8 +1,8 @@
 # Maintainer: whs31 <kerbalspacefruit@gmail.com>
 pkgname=wkit
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
-_source_version=0.1.0
+_source_version=0.1.1
 pkgdesc='One CLI for versioning, formatting, checking, building and testing C, C++ and Rust projects'
 arch=(x86_64)
 url='https://github.com/whs31/wkit'

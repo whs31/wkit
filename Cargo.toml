@@ -1,7 +1,7 @@
 [package]
 name = "wkit"
 description = "One CLI for versioning, formatting, checking, building and testing C, C++ and Rust projects"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.88"
 license-file = "LICENSE"
