@@ -49,6 +49,9 @@ toml = "1"
 ureq = "3"
 which = "8"
 
+[target.'cfg(unix)'.dependencies]
+rustix = { version = "1", features = ["process"] }
+
 [lints.rust]
 unsafe_code = "forbid"
 

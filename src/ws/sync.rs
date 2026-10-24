@@ -94,11 +94,11 @@ impl<'a> MemberSync<'a> {
         )));
       }
       None => {
-        let switch = self.switch_to_branch(repo, &[]);
-        if !switch.success {
+        let checkout = self.checkout_branch(repo, &[]);
+        if !checkout.success {
           return Err(TaskOutcome::git_failed(
             format!("cannot switch to {wanted}"),
-            &switch,
+            &checkout,
           ));
         }
         wanted.clone()
@@ -234,20 +234,20 @@ impl<'a> MemberSync<'a> {
     let before = if fresh { None } else { repo.head() };
     if before.as_deref() != Some(commit) {
       self.phase.set("checking out", None);
-      let force: &[&str] = if fresh { &["--discard-changes"] } else { &[] };
+      let force: &[&str] = if fresh { &["--force"] } else { &[] };
       let branch = &self.member.branch;
       let target = repo.revision(&format!("refs/remotes/origin/{branch}"));
       let local = repo.revision(&format!("refs/heads/{branch}"));
-      let switch =
+      let checkout =
         if target.as_deref() == Some(commit) && local.as_deref().is_none_or(|l| l == commit) {
-          self.switch_to_branch(repo, force)
+          self.checkout_branch(repo, force)
         } else {
-          repo.git(&[&["switch", "--quiet"], force, &["--detach", commit]].concat())
+          repo.git(&[&["checkout", "--quiet"], force, &["--detach", commit, "--"]].concat())
         };
-      if !switch.success {
+      if !checkout.success {
         return TaskOutcome::git_failed(
           format!("cannot check out locked commit {}", short(Some(commit))),
-          &switch,
+          &checkout,
         );
       }
     }
@@ -269,15 +269,15 @@ impl<'a> MemberSync<'a> {
     outcome.with_warning(warning)
   }
 
-  fn switch_to_branch(&self, repo: &Repo, force: &[&str]) -> GitRun {
+  fn checkout_branch(&self, repo: &Repo, force: &[&str]) -> GitRun {
     let branch = self.member.branch.as_str();
     let upstream = format!("origin/{branch}");
     let target: &[&str] = if repo.revision(&format!("refs/heads/{branch}")).is_none() {
-      &["--create", branch, "--track", &upstream]
+      &["-b", branch, "--track", &upstream, "--"]
     } else {
-      &[branch]
+      &[branch, "--"]
     };
-    repo.git(&[&["switch", "--quiet"], force, target].concat())
+    repo.git(&[&["checkout", "--quiet"], force, target].concat())
   }
 
   fn update_submodules(&self, repo: &Repo) -> Option<String> {
