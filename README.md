@@ -86,3 +86,6 @@ Output:
 ```
 
 Run `wkit doctor` to see which tools a project needs, and `wkit --help` for everything else.
+
+#### Coding agents
+[`skills/wkit/SKILL.md`](skills/wkit/SKILL.md) teaches coding agents to use `wkit` instead of calling formatters, linters and build tools directly. Copy it to `.claude/skills/wkit/` or `.agents/skills/wkit/` of a project that has a `wkit.toml`.
