@@ -58,7 +58,7 @@ On Windows, 60+ of these files exist only as `.ps1` twins of a `.sh` script. Bui
 Enough to delete `version.sh`, `format.py` and `clean.sh`.
 - [ ] `wkit` crate. Global flags `-v/-q`, `--color`, `--manifest-path`, `-C <dir>`. Errors print as `error:` followed by `Caused by:`. Exit codes: a failed child's code is passed through, internal errors exit 101
 - [ ] `wkit bump [-M|-m|-p|-a <ver>] [--pre <id>] [--dry-run]`. With no flag it shows every file's version and flags mismatches. `--pre rc` starts or advances a prerelease (`1.2.3` → `1.2.4-rc.1` → `1.2.4-rc.2`). For calver, any bump means "next"
-- [ ] `wkit bump --commit [--tag]`: commit the version files and tag `v<version>`
+- [ ] `wkit bump --commit [--tag]`: commit the version files and tag `<version>`
 - [ ] `wkit fmt [--check]` (alias `format`): `cargo fmt` or `cargo +nightly fmt`, then pinned clang-format via `uv tool run`
 - [ ] `wkit clean [--dry-run]`
 - [ ] `wkit run-script <name>` / `wkit x <name>` for `[scripts]`; unknown subcommands fall back to scripts, then to `wkit-<name>` binaries in PATH
@@ -92,24 +92,14 @@ Enough to delete `check.py`, `clang_tools.py`, `check_versions.py` and `test.sh`
 - [ ] `wkit package deb`: cargo-deb, or conan build + `cmake --install` + a declarative control file (`[package.deb]`) instead of `package-deb.sh`
 - [ ] `wkit package windows`: NSIS/MSI from an install tree (corona, ics2)
 - [ ] `wkit install [--set <deployment>]` / `wkit uninstall`: detect debian-like vs arch-like (`ID`, `ID_LIKE`), build the package, install with apt/pacman. Otherwise `[install]` file mappings for `sudo install`, preserving existing configs, `systemd-tmpfiles`, `systemctl daemon-reload`
-- [ ] `wkit purge [--settings|--keep-license]`: `[purge]` groups of XDG paths
-- [ ] `wkit container <recipe>`: podman with a docker fallback, `--platform`, `--output type=local`, qemu binfmt enabling for cross targets
 
 ### M5: workspace and extras
-- [ ] `wkit ws init|restore|update|lock|status|add|exec|reset|commit|stats` over `workspace.toml`/`workspace.lock`. `wkit ws fmt` runs `wkit fmt` per project instead of searching for Justfiles
-- [ ] `wkit ws submodules update` for submodule-based aggregates (quasar/simulator)
-- [ ] `wkit ci [--profile <name>]`: run fmt check, check, test and release build locally over `[ci]` matrices (cargo feature sets, conan option sets as in rcommon's Qt × adapters)
-- [ ] `wkit deploy <dir>`: copy built plugin libraries (`.so`/`.dll`/`.dylib`) into `<dir>/plugins`
-- [ ] `wkit doc`: poxy for C++, `cargo doc` for Rust
-- [ ] `wkit coverage`: `cargo llvm-cov nextest --lcov`
 - [ ] `wkit smoke <bin> [--runs N --interval S --timeout S]`: repeated launch stability test
-- [ ] `wkit linkage`: forbidden static symbols in an install tree, `ldd` expectations per option set
 - [ ] `wkit doctor`: uv, conan, cmake, ninja, nightly toolchain, cargo-nextest, cargo-deb, makepkg, pinned tools resolvable
 - [ ] `wkit hooks install`: git pre-commit hook running `wkit fmt --check` (replaces `.pre-commit-config.yaml` pin duplication)
 - [ ] `wkit info`: host triple, OS/distro, project summary (`sysinfo` recipes)
-- [ ] `wkit gen embed|hexdump|json2cpp|yaml2cpp|export-header`: the old `wucc` generators
 - [ ] Extra formatters/linters behind `[format.<name>]`: qmlformat (`.qmlformat.ini`), qmllint, black, stylua
-- [ ] `wkit new <template>`: absorb `create-mms-project`
+- [ ] `wkit new <template>`: absorb `create-mms-project` (in future maybe)
 - [ ] MMS extension: `meta.lua` validation (uuid, dependency ranges), plugin version ⇔ conanfile
 
 ## Cross-cutting rules
