@@ -74,6 +74,7 @@ env = { QT_QPA_PLATFORM = "offscreen" }
 
 [build]
 system = "conan"                          # default: conanfile.py > Cargo.toml > CMakeLists.txt
+link-compile-commands = true              # symlink ./compile_commands.json to the active build
 
 [build.conan]
 profile-host = "default"
@@ -93,6 +94,11 @@ all-features = false
 no-default-features = false
 locked = true
 args = []
+
+[conan.sync]                              # `wkit conan sync`: upload the resolved graph from the local cache
+remote = "radar"
+check = true
+force = false
 
 [[bin]]
 name = "mms"

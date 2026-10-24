@@ -14,6 +14,10 @@ pub struct BuildSelection {
   /// Conan host profile [default: `build.conan.profile-host`, then `default`]
   #[arg(long, value_name = "NAME")]
   profile: Option<String>,
+
+  /// Use only packages that are already available locally
+  #[arg(long)]
+  offline: bool,
 }
 
 impl BuildSelection {
@@ -23,6 +27,7 @@ impl BuildSelection {
         .build_type
         .or(self.release.then_some(BuildType::Release)),
       profile: self.profile,
+      offline: self.offline,
       ..BuildOptions::default()
     }
   }

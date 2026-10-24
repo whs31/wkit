@@ -1,0 +1,247 @@
+
+======== Exporting recipe to the cache ========
+geodesy/2.4.1 export
+Exporting package recipe: /work/geodesy/conanfile.py
+Copied 1 '.py' file: conanfile.py
+Copied 2 '.txt' files: CMakeLists.txt, CMakeLists.txt
+Copied 2 '.cpp' files: test_geodesy.cpp, geodesy.cpp
+Copied 2 '.h' files: geodesy.h, version.h
+Exported to cache folder: /home/user/.conan2/p/geodef40ced72173af/e
+Exported: geodesy/2.4.1#060b8cfe1facd2e648d15062b550a205 (2026-10-24 14:40:33 UTC)
+
+======== Input profiles ========
+Profile host:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+Profile build:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+
+======== Computing dependency graph ========
+spdlog/1.17.0: Not found in local cache, looking in remotes...
+spdlog/1.17.0: Checking remote: conancenter
+spdlog/1.17.0: Downloaded recipe revision bcbaaf7147bda6ad24ffbd1ac3d7142c
+fmt/12.1.0: Not found in local cache, looking in remotes...
+fmt/12.1.0: Checking remote: conancenter
+fmt/12.1.0: Downloaded recipe revision 6baf0fb8351783472b94ee6e36232391
+Graph root
+    cli
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391 - Downloaded (conancenter)
+    geodesy/2.4.1#060b8cfe1facd2e648d15062b550a205 - Cache
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c - Downloaded (conancenter)
+
+======== Computing necessary packages ========
+geodesy/2.4.1: Main binary package '09348f87e160e629e5547c35213bbe258af8e20f' missing
+geodesy/2.4.1: Checking 13 compatible configurations
+geodesy/2.4.1: Compatible configurations not found in cache, checking servers
+geodesy/2.4.1: '432399fe19766520d82ff996e9ad71316fe2ac89': compiler.cppstd=98
+geodesy/2.4.1: 'be10ee3db79856fbe8717b85ec71ab67396c7797': compiler.cppstd=gnu98
+geodesy/2.4.1: 'b3d070311b0301c1afb515ad87d2703af1b205e7': compiler.cppstd=11
+geodesy/2.4.1: '24ce35a78f6957b754db4a37d081f4de25df98c5': compiler.cppstd=gnu11
+geodesy/2.4.1: '07658bc2fbaf1e5ba79e61a501d3a50baf0c6967': compiler.cppstd=14
+geodesy/2.4.1: 'e6bd1531670a4a3859ea954300d86af7e1426b88': compiler.cppstd=gnu14
+geodesy/2.4.1: '7a6fb94a45637ac01abd31b311438ae07780de5b': compiler.cppstd=17
+geodesy/2.4.1: 'e0e9f8893ff2e1b3701a1edc828a2b94ae4a72ee': compiler.cppstd=gnu17
+geodesy/2.4.1: 'e327be0b3f6f5067acf607507021de592b59a005': compiler.cppstd=20
+geodesy/2.4.1: '535ef622ac4a3c31e797ff55d37e6745f792fb67': compiler.cppstd=gnu20
+geodesy/2.4.1: 'e42837c43dd342e14bcf697ae838a8df8d08a811': compiler.cppstd=23
+geodesy/2.4.1: 'a177c033adc62230cf5d96401e5d656d6b21ea0b': compiler.cppstd=26
+geodesy/2.4.1: 'db11c5b49c2586fdc8e9c6fb9810eea35cf3472f': compiler.cppstd=gnu26
+geodesy/2.4.1: No compatible configuration found
+
+A new experimental approach for binary compatibility detection is available.
+    Enable it by setting the core.graph:compatibility_mode=optimized conf
+    and get improved performance when querying multiple compatible binaries in remotes.
+
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391:44392ef7c9e5deaea596f41a1bddb9f0d6238cd1#760c345fcb9954479e1e0d337c077edf - Download (conancenter)
+    geodesy/2.4.1#060b8cfe1facd2e648d15062b550a205:09348f87e160e629e5547c35213bbe258af8e20f - Build
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c:f50aac3b9e5bf52c7da50601c4edd3c172e57fb4#464709beecdf219d53f094e2c9154947 - Download (conancenter)
+
+======== Installing packages ========
+
+-------- Downloading 2 packages --------
+Downloading binary packages in 12 parallel threads
+fmt/12.1.0: Retrieving package 44392ef7c9e5deaea596f41a1bddb9f0d6238cd1 from remote 'conancenter'
+spdlog/1.17.0: Retrieving package f50aac3b9e5bf52c7da50601c4edd3c172e57fb4 from remote 'conancenter'
+fmt/12.1.0: Package installed 44392ef7c9e5deaea596f41a1bddb9f0d6238cd1
+fmt/12.1.0: Downloaded package revision 760c345fcb9954479e1e0d337c077edf
+spdlog/1.17.0: Package installed f50aac3b9e5bf52c7da50601c4edd3c172e57fb4
+spdlog/1.17.0: Downloaded package revision 464709beecdf219d53f094e2c9154947
+
+-------- Installing package geodesy/2.4.1 (3 of 3) --------
+Building from source geodesy/2.4.1:09348f87e160e629e5547c35213bbe258af8e20f
+geodesy/2.4.1: settings: os=Linux arch=x86_64 compiler=gcc compiler.cppstd=gnu23 compiler.libcxx=libstdc++11 compiler.version=16 build_type=Debug
+geodesy/2.4.1: options: fPIC=True shared=False test=False
+geodesy/2.4.1: requires: spdlog/1.17.Z fmt/12.1.Z
+>>> Source step
+Getting sources for geodesy/2.4.1
+Copying sources to build folder
+Sources in /home/user/.conan2/p/b/geode5a14517575e59/b
+>>> Generate step for geodesy/2.4.1
+Generators folder: /home/user/.conan2/p/b/geode5a14517575e59/b/build/Debug/generators
+Calling generate() method in recipe
+CMakeDeps necessary find_package() and targets for your CMakeLists.txt
+    find_package(spdlog)
+    target_link_libraries(... spdlog::spdlog)
+CMakeToolchain generated: conan_toolchain.cmake
+CMakeToolchain generated: /home/user/.conan2/p/b/geode5a14517575e59/b/build/Debug/generators/CMakePresets.json
+CMakeToolchain generated: /home/user/.conan2/p/b/geode5a14517575e59/b/CMakeUserPresets.json
+Generating aggregated env files
+Generated aggregated env files: ['conanbuild.sh', 'conanrun.sh']
+Building your package in /home/user/.conan2/p/b/geode5a14517575e59/b
+>>> Build step for geodesy/2.4.1
+geodesy/2.4.1: Calling build()
+geodesy/2.4.1: Running CMake.configure()
+geodesy/2.4.1: RUN: cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="generators/conan_toolchain.cmake" -DCMAKE_INSTALL_PREFIX="/home/user/.conan2/p/b/geode5a14517575e59/p" -DBUILD_TESTING="OFF" -DCMAKE_POLICY_DEFAULT_CMP0091="NEW" -DCMAKE_BUILD_TYPE="Debug" "/home/user/.conan2/p/b/geode5a14517575e59/b"
+-- Using Conan toolchain: /home/user/.conan2/p/b/geode5a14517575e59/b/build/Debug/generators/conan_toolchain.cmake
+-- Conan toolchain: Setting CMAKE_POSITION_INDEPENDENT_CODE=ON (options.fPIC)
+-- Conan toolchain: Defining architecture flag: -m64
+-- Conan toolchain: C++ Standard 23 with extensions ON
+-- Conan toolchain: Setting BUILD_SHARED_LIBS = OFF
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Warning: Standard CMAKE_CXX_STANDARD value defined in conan_toolchain.cmake to 23 has been modified to 20 by /home/user/.conan2/p/b/geode5a14517575e59/b/CMakeLists.txt
+-- Conan: Component target declared 'spdlog::spdlog'
+-- Conan: Component target declared 'fmt::fmt'
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/.conan2/p/b/geode5a14517575e59/b/build/Debug
+
+geodesy/2.4.1: Running CMake.build()
+geodesy/2.4.1: RUN: cmake --build "/home/user/.conan2/p/b/geode5a14517575e59/b/build/Debug" -- -j12
+[1/2] Building CXX object CMakeFiles/geodesy.dir/src/geodesy.cpp.o
+[2/2] Linking CXX static library libgeodesy.a
+
+geodesy/2.4.1: Package '09348f87e160e629e5547c35213bbe258af8e20f' built
+geodesy/2.4.1: Build folder /home/user/.conan2/p/b/geode5a14517575e59/b/build/Debug
+>>> Package step for geodesy/2.4.1:09348f87e160e629e5547c35213bbe258af8e20f
+Packaging in folder /home/user/.conan2/p/b/geode5a14517575e59/p
+Calling package()
+Running CMake.install()
+RUN: cmake --install "/home/user/.conan2/p/b/geode5a14517575e59/b/build/Debug" --prefix "/home/user/.conan2/p/b/geode5a14517575e59/p"
+-- Install configuration: "Debug"
+-- Installing: /home/user/.conan2/p/b/geode5a14517575e59/p/lib/libgeodesy.a
+-- Installing: /home/user/.conan2/p/b/geode5a14517575e59/p/include
+-- Installing: /home/user/.conan2/p/b/geode5a14517575e59/p/include/geodesy
+-- Installing: /home/user/.conan2/p/b/geode5a14517575e59/p/include/geodesy/geodesy.h
+-- Installing: /home/user/.conan2/p/b/geode5a14517575e59/p/include/geodesy/version.h
+
+package(): Packaged 1 '.a' file: libgeodesy.a
+package(): Packaged 2 '.h' files: geodesy.h, version.h
+Created package revision 6e6c58ce1ede73c43022703e470dfa4b
+Package '09348f87e160e629e5547c35213bbe258af8e20f' created
+Full package reference: geodesy/2.4.1#060b8cfe1facd2e648d15062b550a205:09348f87e160e629e5547c35213bbe258af8e20f#6e6c58ce1ede73c43022703e470dfa4b
+Package folder /home/user/.conan2/p/b/geode5a14517575e59/p
+
+======== Launching test_package ========
+
+======== Computing dependency graph ========
+Graph root
+    geodesy/2.4.1 (test package): /work/geodesy/test_package/conanfile.py
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391 - Cache
+    geodesy/2.4.1#060b8cfe1facd2e648d15062b550a205 - Cache
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c - Cache
+
+======== Computing necessary packages ========
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391:44392ef7c9e5deaea596f41a1bddb9f0d6238cd1#760c345fcb9954479e1e0d337c077edf - Cache
+    geodesy/2.4.1#060b8cfe1facd2e648d15062b550a205:09348f87e160e629e5547c35213bbe258af8e20f#6e6c58ce1ede73c43022703e470dfa4b - Cache
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c:f50aac3b9e5bf52c7da50601c4edd3c172e57fb4#464709beecdf219d53f094e2c9154947 - Cache
+
+======== Installing packages ========
+fmt/12.1.0: Already installed! (1 of 3)
+spdlog/1.17.0: Already installed! (2 of 3)
+geodesy/2.4.1: Already installed! (3 of 3)
+
+======== Testing the package ========
+Removing previously existing 'test_package' build folder: /work/geodesy/test_package/build/gcc-16-x86_64-gnu23-debug
+geodesy/2.4.1 (test package): Test package build: build/gcc-16-x86_64-gnu23-debug
+geodesy/2.4.1 (test package): Test package build folder: /work/geodesy/test_package/build/gcc-16-x86_64-gnu23-debug
+>>> Generate step for geodesy/2.4.1 (test package)
+Generators folder: /work/geodesy/test_package/build/gcc-16-x86_64-gnu23-debug/generators
+Generator 'CMakeDeps' calling 'generate()'
+CMakeDeps necessary find_package() and targets for your CMakeLists.txt
+    find_package(geodesy)
+    target_link_libraries(... geodesy::geodesy)
+Generator 'CMakeToolchain' calling 'generate()'
+CMakeToolchain generated: conan_toolchain.cmake
+CMakeToolchain generated: /work/geodesy/test_package/build/gcc-16-x86_64-gnu23-debug/generators/CMakePresets.json
+CMakeToolchain generated: /work/geodesy/test_package/CMakeUserPresets.json
+Generating aggregated env files
+Generated aggregated env files: ['conanbuild.sh', 'conanrun.sh']
+
+======== Testing the package: Building ========
+>>> Build step for geodesy/2.4.1 (test package)
+geodesy/2.4.1 (test package): Calling build()
+geodesy/2.4.1 (test package): Running CMake.configure()
+geodesy/2.4.1 (test package): RUN: cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="generators/conan_toolchain.cmake" -DCMAKE_INSTALL_PREFIX="/work/geodesy/test_package" -DCMAKE_POLICY_DEFAULT_CMP0091="NEW" -DBUILD_TESTING="OFF" -DCMAKE_BUILD_TYPE="Debug" "/work/geodesy/test_package"
+-- Using Conan toolchain: /work/geodesy/test_package/build/gcc-16-x86_64-gnu23-debug/generators/conan_toolchain.cmake
+-- Conan toolchain: Defining architecture flag: -m64
+-- Conan toolchain: C++ Standard 23 with extensions ON
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Conan: Target declared 'geodesy::geodesy'
+-- Conan: Component target declared 'spdlog::spdlog'
+-- Conan: Component target declared 'fmt::fmt'
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+CMake Warning (unused-cli):
+  Manually-specified variables were not used by the project:
+
+    BUILD_TESTING
+
+
+-- Build files have been written to: /work/geodesy/test_package/build/gcc-16-x86_64-gnu23-debug
+
+geodesy/2.4.1 (test package): Running CMake.build()
+geodesy/2.4.1 (test package): RUN: cmake --build "/work/geodesy/test_package/build/gcc-16-x86_64-gnu23-debug" -- -j12
+[1/2] Building CXX object CMakeFiles/example.dir/main.cpp.o
+[2/2] Linking CXX executable example
+
+
+======== Testing the package: Executing test ========
+geodesy/2.4.1 (test package): Running test()
+geodesy/2.4.1 (test package): RUN: ./example
+111195
+

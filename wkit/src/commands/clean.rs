@@ -1,5 +1,6 @@
 mod path_pattern;
 
+use wkit_build::{BuildLog, ConanWorkspace};
 use wkit_core::shell::Bytes;
 
 use self::path_pattern::PathPattern;
@@ -15,13 +16,32 @@ pub struct CleanArgs {
 impl CleanArgs {
   pub fn run(self, ctx: &mut Context<'_>) -> anyhow::Result<()> {
     let project = ctx.project()?;
+    let mut roots = vec![project.root.clone()];
+    if let Some(workspace) = ConanWorkspace::load(&project.root)? {
+      roots.extend(
+        workspace
+          .packages
+          .iter()
+          .map(|p| project.join(&p.path))
+          .filter(|dir| dir.is_dir()),
+      );
+    }
+    let test_packages: Vec<_> = roots
+      .iter()
+      .map(|root| root.join(BuildLog::TEST_PACKAGE))
+      .filter(|dir| dir.join("conanfile.py").is_file())
+      .collect();
+    roots.extend(test_packages);
     let mut targets = Vec::new();
     for raw in project
       .manifest
       .clean
       .effective_paths(project.manifest.languages())
     {
-      targets.extend(PathPattern::new(&raw)?.expand(&project.root)?);
+      let pattern = PathPattern::new(&raw)?;
+      for root in &roots {
+        targets.extend(pattern.expand(root)?);
+      }
     }
     targets.sort();
     let mut kept: Vec<std::path::PathBuf> = Vec::with_capacity(targets.len());

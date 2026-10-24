@@ -4,8 +4,8 @@ mod validator;
 pub use self::parsed::Parsed;
 use self::validator::Validator;
 use crate::{
-  Bin, BuildSection, CheckSection, CleanSection, FormatSection, ManifestError, ProjectSection,
-  Task, TestSection, Tools, VersionSection,
+  Bin, BuildSection, CheckSection, CleanSection, ConanSection, FormatSection, ManifestError,
+  ProjectSection, Task, TestSection, Tools, VersionSection,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
@@ -25,6 +25,9 @@ pub struct Manifest {
 
   #[serde(default)]
   pub build: BuildSection,
+
+  #[serde(default)]
+  pub conan: ConanSection,
 
   #[serde(default, rename = "bin")]
   pub bins: Vec<Bin>,

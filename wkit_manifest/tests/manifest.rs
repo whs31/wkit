@@ -63,6 +63,9 @@ fn reference_manifest_is_complete_and_valid() {
 
   assert_eq!(m.build.system, Some(BuildSystem::Conan));
   assert_eq!(m.build.conan.test_option.as_deref(), Some("test"));
+  assert!(m.build.link_compile_commands);
+  assert_eq!(m.conan.sync.remote.as_deref(), Some("radar"));
+  assert!(m.conan.sync.check && !m.conan.sync.force);
   assert_eq!(
     m.build.conan.setting_args(),
     ["-s", "compiler.cppstd=gnu23"]
@@ -91,6 +94,7 @@ fn minimal_manifest_gets_language_driven_defaults() {
   assert!(m.check.whitespace && m.check.pre_commit);
   assert_eq!(m.test.junit_dir(), std::path::Path::new("build/junit"));
   assert_eq!(m.build.conan.test_option, None);
+  assert!(m.build.link_compile_commands && m.conan.sync.remote.is_none());
   assert!(m.version.is_none() && m.bins.is_empty() && m.default_bin().is_none());
   let clean = m.clean.effective_paths(m.languages());
   assert!(clean.contains(&"build".to_owned()) && !clean.contains(&"target".to_owned()));

@@ -24,6 +24,7 @@ pub struct BuildLog {
 
 impl BuildLog {
   pub const TAIL: usize = 30;
+  pub const TEST_PACKAGE: &str = "test_package";
   const NOISY_WARNINGS: [&str; 2] = ["experimental", "Workspace found"];
 
   pub fn new(root: PackageRef) -> Self {
@@ -41,6 +42,13 @@ impl BuildLog {
       errors: Vec::new(),
       tail: std::collections::VecDeque::new(),
     }
+  }
+
+  pub fn set_root(&mut self, root: PackageRef) {
+    self.current = root.clone();
+    self.root = root;
+    self.dependency = false;
+    self.building = false;
   }
 
   pub fn start_build(&mut self) {
@@ -118,6 +126,8 @@ impl BuildLog {
       } else if line.starts_with("======== Installing packages") {
         events.push(Self::phase("Installing", "dependencies"));
       }
+    } else if let Some(c) = patterns.export.captures(line) {
+      self.set_root(PackageRef::parse(&c["reference"]));
     } else if let Some(c) = patterns.installing.captures(line) {
       self.current = PackageRef::parse(&c["reference"]);
     } else if let Some(c) = patterns.from_source.captures(line) {
@@ -154,7 +164,9 @@ impl BuildLog {
       .or_else(|| c.name("reference"))
       .map_or_else(|| self.root.clone(), |m| PackageRef::parse(m.as_str()));
     let rest = &c["rest"];
-    if rest.starts_with("Retrieving package") {
+    if c.name("test").is_some() {
+      self.test_package(rest, events);
+    } else if rest.starts_with("Retrieving package") {
       events.push(Event::Downloading(package));
     } else if rest == "Building from source" {
       self.enter_dependency(package, events);
@@ -174,11 +186,31 @@ impl BuildLog {
   }
 
   fn enter_dependency(&mut self, package: PackageRef, events: &mut Vec<Event>) {
-    self.dependency = true;
     self.building = false;
+    self.compiling = false;
     self.tail.clear();
     self.current = package.clone();
-    events.push(Event::CompilingDependency(package));
+    self.dependency = package.name != self.root.name;
+    if self.dependency {
+      events.push(Event::CompilingDependency(package));
+    } else {
+      events.push(Self::phase("Building", &package.to_string()));
+    }
+  }
+
+  fn test_package(&mut self, rest: &str, events: &mut Vec<Event>) {
+    if rest == "Calling build()" {
+      self.dependency = false;
+      self.building = false;
+      self.compiling = false;
+      self.current = PackageRef::new(Self::TEST_PACKAGE, None);
+      events.push(Self::phase("Building", Self::TEST_PACKAGE));
+    } else if rest.starts_with("RUN: cmake --build") {
+      self.building = true;
+    } else if rest == "Running test()" {
+      self.building = true;
+      events.push(Event::Testing(self.root.clone()));
+    }
   }
 
   fn step(&mut self, current: u64, total: u64, target: String, events: &mut Vec<Event>) {

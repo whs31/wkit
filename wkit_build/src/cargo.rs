@@ -44,6 +44,29 @@ impl<'a> Cargo<'a> {
     cargo
   }
 
+  pub fn run_command(
+    &self,
+    build_type: BuildType,
+    package: Option<&str>,
+    bin: Option<&str>,
+  ) -> ProcessBuilder {
+    let config = &self.project.manifest.build.cargo;
+    let mut cargo = config.command(&self.project.root, &["run"]);
+    if let Some(package) = package.or(config.package.as_deref()) {
+      cargo = cargo.args(["--package", package]);
+    }
+    if let Some(bin) = bin {
+      cargo = cargo.args(["--bin", bin]);
+    }
+    if build_type.is_optimized() {
+      cargo = cargo.arg("--release");
+    }
+    if self.options.offline {
+      cargo = cargo.arg("--offline");
+    }
+    cargo.args(&config.args).arg("--")
+  }
+
   pub fn run(&self, build_type: BuildType, extra: bool) -> Result<()> {
     self.command(build_type, extra).status().map_err(Into::into)
   }
@@ -75,6 +98,12 @@ mod tests {
     assert_eq!(
       cargo.command(BuildType::Debug, false).to_string(),
       "cargo build --locked --package cli --offline"
+    );
+    assert_eq!(
+      cargo
+        .run_command(BuildType::Release, None, Some("encode"))
+        .to_string(),
+      "cargo run --locked --package cli --bin encode --release --offline --"
     );
   }
 }

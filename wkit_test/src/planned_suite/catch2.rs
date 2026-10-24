@@ -7,7 +7,7 @@ impl PlannedSuite {
   pub(super) fn catch2(ctx: &SuiteContext<'_>, suite: &TestSuite, name: String) -> Result<Self> {
     let dir = ctx.build_dir(suite)?;
     let binary = suite.binary.as_deref().unwrap_or(&name);
-    let path = Self::find_binary(&dir, binary).ok_or_else(|| {
+    let path = wkit_core::fs::find_executable(&dir, binary).ok_or_else(|| {
       Error::setup(
         format!("test binary `{binary}` not found in `{}`", dir.display()),
         Some("check `binary` in `[[test.suite]]`".to_owned()),
@@ -40,31 +40,5 @@ impl PlannedSuite {
       junit,
       generated: Vec::new(),
     })
-  }
-
-  pub fn find_binary(dir: &std::path::Path, binary: &str) -> Option<std::path::PathBuf> {
-    let exe = format!("{binary}{}", std::env::consts::EXE_SUFFIX);
-    let direct = dir.join(&exe);
-    if direct.is_file() {
-      return Some(direct);
-    }
-    let file_name = std::path::Path::new(&exe).file_name()?.to_owned();
-    let mut pending = vec![dir.to_owned()];
-    let mut found = Vec::new();
-    while let Some(current) = pending.pop() {
-      for entry in std::fs::read_dir(&current).into_iter().flatten().flatten() {
-        let path = entry.path();
-        let Ok(kind) = entry.file_type() else {
-          continue;
-        };
-        if kind.is_dir() && entry.file_name() != "CMakeFiles" {
-          pending.push(path);
-        } else if kind.is_file() && entry.file_name() == file_name {
-          found.push(path);
-        }
-      }
-    }
-    found.sort();
-    found.into_iter().next()
   }
 }

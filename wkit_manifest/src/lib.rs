@@ -4,6 +4,7 @@ mod manifest;
 pub mod build;
 pub mod check;
 pub mod clean;
+pub mod conan;
 pub mod error;
 pub mod format;
 pub mod project;
@@ -16,6 +17,7 @@ pub use self::{
   build::{Bin, BuildSection, BuildType},
   check::CheckSection,
   clean::CleanSection,
+  conan::ConanSection,
   error::ManifestError,
   format::FormatSection,
   manifest::{Manifest, Parsed},

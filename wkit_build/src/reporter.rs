@@ -48,6 +48,10 @@ impl<'a> Reporter<'a> {
     })
   }
 
+  pub fn set_root(&mut self, root: PackageRef) {
+    self.log.set_root(root);
+  }
+
   pub fn start_build(&mut self) {
     self.log.start_build();
   }
@@ -78,6 +82,10 @@ impl<'a> Reporter<'a> {
       self.clear();
       Err(self.failure(process, status))
     }
+  }
+
+  pub fn packages(&self) -> &[BuiltPackage] {
+    &self.packages
   }
 
   pub fn finish(mut self) -> Vec<BuiltPackage> {
@@ -119,6 +127,7 @@ impl<'a> Reporter<'a> {
       Event::Compiling(package) => self
         .shell
         .status("Compiling", format_args!("{package} ({})", self.build_type))?,
+      Event::Testing(package) => self.shell.status("Testing", package)?,
       Event::Step {
         current,
         total,

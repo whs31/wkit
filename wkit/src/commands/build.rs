@@ -12,10 +12,6 @@ pub struct BuildArgs {
   #[arg(short, long)]
   tests: bool,
 
-  /// Use only packages that are already available locally
-  #[arg(long)]
-  offline: bool,
-
   /// Number of parallel jobs
   #[arg(short, long, value_name = "N")]
   jobs: Option<std::num::NonZeroUsize>,
@@ -31,7 +27,6 @@ impl BuildArgs {
     let options = BuildOptions {
       tests: self.tests,
       jobs: self.jobs.map(std::num::NonZeroUsize::get),
-      offline: self.offline,
       extra: self.args,
       ..self.selection.options()
     };

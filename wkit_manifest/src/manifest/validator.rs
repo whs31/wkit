@@ -61,6 +61,16 @@ impl<'a> Validator<'a> {
   fn build(&mut self) {
     if self
       .manifest
+      .conan
+      .sync
+      .remote
+      .as_deref()
+      .is_some_and(|r| r.trim().is_empty())
+    {
+      self.report("`conan.sync.remote` must not be empty");
+    }
+    if self
+      .manifest
       .build
       .conan
       .settings

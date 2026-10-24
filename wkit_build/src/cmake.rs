@@ -62,21 +62,41 @@ impl<'a> CMake<'a> {
     cmake
   }
 
+  pub fn configure(&self, shell: &mut Shell, build_type: BuildType) -> Result<Vec<BuiltPackage>> {
+    let mut reporter = self.reporter(shell, build_type)?;
+    self.configure_into(&mut reporter, build_type)?;
+    Ok(reporter.finish())
+  }
+
   pub fn run(&self, shell: &mut Shell, build_type: BuildType) -> Result<Vec<BuiltPackage>> {
-    let root = PackageRef::of_project(self.project);
-    let log = self.project.join("build").join("wkit-build.log");
-    let mut reporter = Reporter::new(shell, root.clone(), build_type, Some(log))?;
-    reporter.run(&self.configure_command(build_type))?;
-    let mut packages = reporter.finish();
-    let Some(built) = packages.pop() else {
-      return Err(Error::Message(
-        "CMake did not report a build directory".to_owned(),
-      ));
-    };
-    let mut reporter = Reporter::new(shell, root, build_type, None)?;
+    let mut reporter = self.reporter(shell, build_type)?;
+    let built = self.configure_into(&mut reporter, build_type)?;
     reporter.start_build();
     reporter.run(&self.build_command(&built.build_dir, build_type))?;
-    Ok(vec![built])
+    Ok(reporter.finish())
+  }
+
+  fn configure_into(
+    &self,
+    reporter: &mut Reporter<'_>,
+    build_type: BuildType,
+  ) -> Result<BuiltPackage> {
+    reporter.run(&self.configure_command(build_type))?;
+    reporter
+      .packages()
+      .last()
+      .cloned()
+      .ok_or_else(|| Error::Message("CMake did not report a build directory".to_owned()))
+  }
+
+  fn reporter<'s>(&self, shell: &'s mut Shell, build_type: BuildType) -> Result<Reporter<'s>> {
+    let log = self.project.join("build").join("wkit-build.log");
+    Reporter::new(
+      shell,
+      PackageRef::of_project(self.project),
+      build_type,
+      Some(log),
+    )
   }
 
   fn default_dir(build_type: BuildType) -> std::path::PathBuf {

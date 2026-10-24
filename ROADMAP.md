@@ -79,18 +79,19 @@ Enough to delete `check.py`, `clang_tools.py`, `check_versions.py` and `test.sh`
   - A suite that fails without writing JUnit still shows up as a failed testsuite
 - [x] `QT_QPA_PLATFORM=offscreen` default for test env on headless CI (`$CI` set)
 
-### M3: build, run, conan helpers
+### M3: build, run, conan helpers ✅
 - [x] `wkit build [-r|--release|--build-type T] [--profile P] [-t|--tests] [--offline] [-j N] [-- extra]`
   - The manifest never sets the build type: it comes from `--build-type`, then the Conan host profile (CMake presets for plain CMake), then Debug
   - The manifest never sets Conan options: the conanfile defaults apply. `--tests` turns on the conanfile's test option (`test`, `tests`, `with_tests`, … or `build.conan.test-option`)
   - Conan, CMake and ninja output becomes `Compiling`/`Configuring`/`Downloading` lines and a progress bar; compiler diagnostics pass through, `-v` shows the raw output, the full log goes to `build/wkit-build.log`
   - `wkit check` builds first when clang-tidy has no compile database
-- [ ] `wkit run [--bin <name>] [-- args]` with `default-run`, `[[bin]]` path templates, env, cwd
-- [ ] `wkit configure`: `conan install` + resolve the Conan CMake preset (`CMakeUserPresets.json` includes, newest `conan-<type>`) + `cmake --preset`
-- [ ] `wkit create`: `conan create` / `conan workspace create`
-- [ ] `wkit graph [--open]`: `conan graph info . --format=html` → `docs/graph.html`
-- [ ] `wkit conan sync [--dry-run]`: upload the resolved graph from the local cache (`[conan.sync] remote`, replaces `ConanRemoteSync.toml`)
-- [ ] `compile_commands.json` symlink to the active build dir (several repos keep one by hand)
+- [x] `wkit run [--bin <name>] [-- args]` with `default-run`, `[[bin]]` path templates, env, cwd. Builds first; bins without `path` go through `cargo run`
+- [x] `wkit configure [-t]`: `conan install` + resolve the Conan CMake preset (`CMakeUserPresets.json` includes, preset matching the build type) + `cmake --preset`. In a workspace, packages other than the last are also built so dependents can find them
+- [x] `wkit create`: `conan create` / `conan workspace create`, test package output translated like `build`
+- [x] `wkit graph [-o <file>] [--open]`: `conan graph info . --format=html` → `docs/graph.html`
+- [x] `wkit conan sync [--remote <r>] [--dry-run]`: upload the resolved graph from the local cache one package at a time (`[conan.sync] remote/check/force`, replaces `ConanRemoteSync.toml`). Fails on missing binaries; the root package is never uploaded
+- [x] `compile_commands.json` symlink to the active build dir after `build`/`configure` (`build.link-compile-commands`, single-package projects; real files are left alone)
+- [x] `wkit clean` also cleans every Conan workspace package (`conanws.yml`/`conanws.py`)
 
 ### M4: packaging and installation
 - [ ] `wkit package arch`: tarball from `git ls-files --cached --others --exclude-standard` (skipping package outputs), check versions against PKGBUILD, `makepkg --syncdeps --cleanbuild --force`, `PKGDEST` support

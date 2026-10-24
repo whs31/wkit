@@ -12,6 +12,3 @@ system = "conan"
 
 [build.conan]
 workspace = true
-
-[clean]
-extra = ["*/build", "*/CMakeUserPresets.json"]

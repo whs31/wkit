@@ -3,16 +3,22 @@ mod build_selection;
 mod bump;
 mod check;
 mod clean;
+mod conan;
+mod configure;
+mod create;
 mod external;
 mod fmt;
+mod graph;
 mod init;
+mod run;
 mod run_script;
 mod self_update;
 mod test;
 
 use self::{
-  build::BuildArgs, bump::BumpArgs, check::CheckArgs, clean::CleanArgs, external::External,
-  fmt::FmtArgs, init::InitArgs, run_script::RunScriptArgs, self_update::SelfUpdateArgs,
+  build::BuildArgs, bump::BumpArgs, check::CheckArgs, clean::CleanArgs, conan::ConanArgs,
+  configure::ConfigureArgs, create::CreateArgs, external::External, fmt::FmtArgs, graph::GraphArgs,
+  init::InitArgs, run::RunArgs, run_script::RunScriptArgs, self_update::SelfUpdateArgs,
   test::TestArgs,
 };
 use crate::context::Context;
@@ -29,6 +35,12 @@ pub enum Command {
   /// Build the project and its dependencies
   Build(BuildArgs),
 
+  /// Install dependencies and configure the build without compiling
+  Configure(ConfigureArgs),
+
+  /// Build a `[[bin]]` and run it
+  Run(RunArgs),
+
   /// Run format, version, lint and custom checks
   Check(CheckArgs),
 
@@ -37,6 +49,16 @@ pub enum Command {
 
   /// Remove build outputs and generated files
   Clean(CleanArgs),
+
+  /// Create the Conan package in the local cache and run its test package
+  Create(CreateArgs),
+
+  /// Render the Conan dependency graph as HTML
+  Graph(GraphArgs),
+
+  /// Conan helpers
+  #[command(subcommand_value_name = "COMMAND")]
+  Conan(ConanArgs),
 
   /// Run a script from `[scripts]`
   #[command(visible_alias = "x")]
@@ -58,9 +80,14 @@ impl Command {
       Self::Bump(args) => args.run(ctx),
       Self::Fmt(args) => args.run(ctx),
       Self::Build(args) => args.run(ctx),
+      Self::Configure(args) => args.run(ctx),
+      Self::Run(args) => args.run(ctx),
       Self::Check(args) => args.run(ctx),
       Self::Test(args) => args.run(ctx),
       Self::Clean(args) => args.run(ctx),
+      Self::Create(args) => args.run(ctx),
+      Self::Graph(args) => args.run(ctx),
+      Self::Conan(args) => args.run(ctx),
       Self::RunScript(args) => args.run(ctx),
       Self::SelfUpdate(args) => args.run(ctx),
       Self::Init(args) => args.run(ctx),

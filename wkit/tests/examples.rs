@@ -1,4 +1,4 @@
-const SKIPPED: &[&str] = &["build", "target", ".git"];
+const SKIPPED: &[&str] = &["build", "target", ".git", "compile_commands.json"];
 
 fn examples() -> Vec<std::path::PathBuf> {
   let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../tests");
@@ -181,4 +181,64 @@ fn plain_cmake_example_builds_before_testing() {
   let (_, stderr) = succeed(dir.path(), &["build", "--build-type", "release"]);
   assert!(stderr.contains("`Release` build"), "{stderr}");
   assert!(!stderr.contains("Building"), "{stderr}");
+}
+
+#[test]
+fn plain_cmake_example_runs_and_links_compile_commands() {
+  if which::which("cmake").is_err() {
+    return;
+  }
+  let example = examples()
+    .into_iter()
+    .find(|e| e.ends_with("cmake-c"))
+    .unwrap();
+  let dir = tempfile::tempdir().unwrap();
+  copy(&example, dir.path());
+  succeed(dir.path(), &["configure"]);
+  if cfg!(unix) {
+    assert_eq!(
+      std::fs::read_link(dir.path().join("compile_commands.json")).unwrap(),
+      std::path::Path::new("build/default/compile_commands.json")
+    );
+  }
+  let (stdout, stderr) = succeed(dir.path(), &["run", "--", "world"]);
+  assert_eq!(stdout, "92  hello\nb3  world\n");
+  assert!(
+    stderr.contains("Running `build/default/crc8sum"),
+    "{stderr}"
+  );
+}
+
+#[test]
+fn clean_removes_workspace_package_outputs() {
+  let example = examples()
+    .into_iter()
+    .find(|e| e.ends_with("conan-workspace"))
+    .unwrap();
+  let dir = tempfile::tempdir().unwrap();
+  copy(&example, dir.path());
+  std::fs::create_dir_all(dir.path().join("core/test_package")).unwrap();
+  std::fs::write(dir.path().join("core/test_package/conanfile.py"), "").unwrap();
+  let outputs = [
+    "build/Debug",
+    "app/build/Debug",
+    "core/build/Debug",
+    "core/test_package/build/Debug",
+  ];
+  for output in outputs {
+    std::fs::create_dir_all(dir.path().join(output)).unwrap();
+  }
+  for package in ["app", "core"] {
+    std::fs::write(dir.path().join(package).join("CMakeUserPresets.json"), "{}").unwrap();
+  }
+  succeed(dir.path(), &["clean"]);
+  for leftover in [
+    "build",
+    "app/build",
+    "core/build",
+    "app/CMakeUserPresets.json",
+  ] {
+    assert!(!dir.path().join(leftover).exists(), "{leftover}");
+  }
+  assert!(dir.path().join("core/conanfile.py").is_file());
 }

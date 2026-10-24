@@ -202,3 +202,37 @@ fn cmake_warnings_from_the_project_are_shown() {
     ]
   );
 }
+
+#[test]
+fn create_treats_the_exported_recipe_as_the_root() {
+  let mut log = BuildLog::new(PackageRef::new("project", None));
+  let text = std::fs::read_to_string(
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/conan-create.log"),
+  )
+  .unwrap();
+  let events: Vec<_> = text.lines().flat_map(|line| log.feed(line)).collect();
+  let summary: Vec<_> = events
+    .iter()
+    .filter(|e| {
+      !matches!(
+        e,
+        Event::Step { .. } | Event::Phase { .. } | Event::BuildDir(..)
+      )
+    })
+    .cloned()
+    .collect();
+  let test_package = PackageRef::new(BuildLog::TEST_PACKAGE, None);
+  assert_eq!(
+    summary,
+    [
+      Event::Downloading(PackageRef::parse("fmt/12.1.0")),
+      Event::Downloading(PackageRef::parse("spdlog/1.17.0")),
+      Event::Configuring(geodesy()),
+      Event::Compiling(geodesy()),
+      Event::Configuring(test_package.clone()),
+      Event::Compiling(test_package),
+      Event::Testing(geodesy()),
+      Event::Diagnostic("111195".into()),
+    ]
+  );
+}

@@ -1,5 +1,6 @@
 pub(super) struct Patterns {
   pub conan_line: regex::Regex,
+  pub export: regex::Regex,
   pub installing: regex::Regex,
   pub from_source: regex::Regex,
   pub ninja_step: regex::Regex,
@@ -13,9 +14,11 @@ impl Patterns {
     static PATTERNS: std::sync::LazyLock<Patterns> = std::sync::LazyLock::new(|| {
       Patterns {
       conan_line: regex::Regex::new(
-        r"^(?:conanfile\.py(?: \((?<label>[^)]+)\))?|(?<reference>[\w.+-]+/[\w.+-]+(?:@[\w.+/-]+)?)): (?<rest>.*)$",
+        r"^(?:conanfile\.py(?: \((?<label>[^)]+)\))?|(?<reference>[\w.+-]+/[\w.+-]+(?:@[\w.+/-]+)?)(?<test> \(test package\))?): (?<rest>.*)$",
       )
       .expect("valid regex"),
+      export: regex::Regex::new(r"^(?<reference>[\w.+-]+/[\w.+-]+(?:@[\w.+/-]+)?) export$")
+        .expect("valid regex"),
       installing: regex::Regex::new(r"^-------- Installing package (?<reference>\S+) \(")
         .expect("valid regex"),
       from_source: regex::Regex::new(r"^Building from source (?<reference>[^:\s]+)")

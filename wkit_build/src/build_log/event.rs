@@ -15,6 +15,8 @@ pub enum Event {
 
   Compiling(PackageRef),
 
+  Testing(PackageRef),
+
   Step {
     current: u64,
     total: u64,
