@@ -1,0 +1,18 @@
+[project]
+name = "packet-tools"
+description = "Single Cargo package with stable rustfmt, several binaries and a prerelease version"
+languages = ["rust"]
+default-run = "encode"
+
+[version]
+files = ["Cargo.toml"]
+
+[[bin]]
+name = "encode"
+args = ["ping"]
+
+[[bin]]
+name = "decode"
+
+[[test.suite]]
+runner = "cargo"

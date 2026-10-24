@@ -1,0 +1,4 @@
+/build/
+/run/out/
+CMakeUserPresets.json
+compile_commands.json

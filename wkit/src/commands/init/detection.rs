@@ -1,4 +1,9 @@
-use wkit_core::{Language, detect::BuildSystem, fs::SourceSet};
+use wkit_core::{
+  Language,
+  detect::BuildSystem,
+  fs::SourceSet,
+  version::{CalVer, Scheme},
+};
 use wkit_manifest::{TestRunner, VersionFile};
 use wkit_version::VersionDocument;
 
@@ -8,12 +13,13 @@ pub struct Detection {
   pub languages: std::collections::BTreeSet<Language>,
   pub build_system: Option<BuildSystem>,
   pub version_files: Vec<String>,
+  pub scheme: Scheme,
   pub test_runners: Vec<TestRunner>,
 }
 
 impl Detection {
   const ROOT_VERSION_FILES: &[&str] = &["conanfile.py", "Cargo.toml", "CMakeLists.txt"];
-  const NESTED_VERSION_FILES: &[&str] = &["PKGBUILD", "meta.lua"];
+  const NESTED_VERSION_FILES: &[&str] = &["PKGBUILD", "meta.lua", "conanfile.py", "CMakeLists.txt"];
   const CTEST_MARKERS: &[&str] = &[
     "enable_testing(",
     "include(ctest)",
@@ -29,13 +35,16 @@ impl Detection {
       "could not find C, C++ or Rust sources in `{}`",
       root.display()
     );
+    let version_files = Self::version_files(root)?;
+    let scheme = Self::scheme(root, version_files.first())?;
     Ok(Self {
       name: root.file_name().map_or_else(
         || "project".to_owned(),
         |n| n.to_string_lossy().into_owned(),
       ),
       build_system: BuildSystem::from_path(root),
-      version_files: Self::version_files(root)?,
+      version_files,
+      scheme,
       test_runners: Self::test_runners(root, &languages)?,
       languages,
     })
@@ -60,7 +69,11 @@ impl Detection {
     )];
     if !self.version_files.is_empty() {
       let files = self.version_files.iter().map(|f| quote(f)).collect();
-      sections.push(format!("[version]\nfiles = [{}]\n", list(files)));
+      let scheme = match self.scheme {
+        Scheme::SemVer => String::new(),
+        Scheme::CalVer => format!("scheme = {}\n", quote(&self.scheme.to_string())),
+      };
+      sections.push(format!("[version]\n{scheme}files = [{}]\n", list(files)));
     }
     if let Some(system) = self.build_system {
       sections.push(format!(
@@ -89,6 +102,8 @@ impl Detection {
       .collect()?;
     let mut nested: Vec<String> = nested
       .iter()
+      .filter(|p| p.parent() != Some(root))
+      .filter(|p| !p.ends_with("CMakeLists.txt") || p.with_file_name("conanfile.py").is_file())
       .filter_map(|p| p.strip_prefix(root).ok())
       .map(|p| {
         p.components()
@@ -109,6 +124,18 @@ impl Detection {
         })
         .collect(),
     )
+  }
+
+  fn scheme(root: &std::path::Path, source: Option<&String>) -> anyhow::Result<Scheme> {
+    let Some(file) = source.and_then(|s| VersionFile::infer(s.as_str())) else {
+      return Ok(Scheme::SemVer);
+    };
+    let current = VersionDocument::load(root, &file)?.current().to_owned();
+    Ok(if current.parse::<CalVer>().is_ok() {
+      Scheme::CalVer
+    } else {
+      Scheme::SemVer
+    })
   }
 
   fn test_runners(
@@ -192,6 +219,57 @@ mod tests {
     assert!(manifest.warnings.is_empty());
     assert!(manifest.manifest.has(Language::Cpp) && manifest.manifest.has(Language::Rust));
     assert_eq!(manifest.manifest.version.unwrap().files.len(), 4);
+  }
+
+  #[test]
+  fn detects_conan_workspace_packages() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write(root, "conanws.yml", "packages: []\n");
+    for package in ["core", "app"] {
+      write(
+        root,
+        &format!("{package}/conanfile.py"),
+        "class P(ConanFile):\n  version = \"0.5.0\"\n",
+      );
+      write(
+        root,
+        &format!("{package}/CMakeLists.txt"),
+        "project(p VERSION 0.5.0)\n",
+      );
+      write(root, &format!("{package}/src/main.cpp"), "int main() {}\n");
+    }
+    write(
+      root,
+      "third_party/zstd/CMakeLists.txt",
+      "project(zstd VERSION 1.5.7)\n",
+    );
+    write(
+      root,
+      "core/tests/CMakeLists.txt",
+      "add_executable(t t.cpp)\n",
+    );
+    assert_eq!(
+      Detection::scan(root).unwrap().version_files,
+      [
+        "app/CMakeLists.txt",
+        "app/conanfile.py",
+        "core/CMakeLists.txt",
+        "core/conanfile.py"
+      ]
+    );
+  }
+
+  #[test]
+  fn detects_calendar_versions() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    write(root, "CMakeLists.txt", "project(p VERSION 2026.10.24.2)\n");
+    write(root, "main.c", "int main(void) { return 0; }\n");
+    let detection = Detection::scan(root).unwrap();
+    assert_eq!(detection.scheme, Scheme::CalVer);
+    let manifest = Manifest::parse(&detection.render()).unwrap().manifest;
+    assert_eq!(manifest.version.unwrap().scheme, Scheme::CalVer);
   }
 
   #[test]

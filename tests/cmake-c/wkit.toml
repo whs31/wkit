@@ -1,0 +1,20 @@
+[project]
+name = "crc8"
+description = "Plain CMake C project without Conan, tested through ctest"
+languages = ["c"]
+default-run = "crc8sum"
+
+[version]
+files = ["CMakeLists.txt"]
+
+[build]
+system = "cmake"
+
+[[bin]]
+name = "crc8sum"
+path = "build/default/crc8sum{exe}"
+args = ["hello"]
+
+[[test.suite]]
+runner = "ctest"
+build-dir = "build/default"

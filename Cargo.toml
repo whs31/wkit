@@ -7,6 +7,7 @@ members = [
     "wkit_fmt",
     "wkit_version",
 ]
+exclude = ["tests"]
 
 [workspace.package]
 version = "0.1.0"

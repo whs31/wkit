@@ -1,0 +1,36 @@
+[project]
+name = "geodesy"
+description = "Conan C++ library with Catch2 tests and a test_package"
+languages = ["cpp"]
+
+[version]
+files = [
+  "conanfile.py",
+  "CMakeLists.txt",
+  "packaging/arch/PKGBUILD",
+  { path = "include/geodesy/version.h", pattern = '#define GEODESY_VERSION_STRING "(?<version>[^"]*)"' },
+]
+
+[format.cpp]
+exclude = ["/build/", "/test_package/build/"]
+
+[check.clang-tidy]
+dirs = ["include", "src", "tests"]
+
+[build]
+system = "conan"
+build-type = "Release"
+
+[build.conan]
+test-option = "test"
+
+[[test.suite]]
+name = "unit"
+runner = "catch2"
+binary = "tests/geodesy_tests"
+build-dir = "build/{build-type}"
+filter = "~[!benchmark]"
+
+[[test.suite]]
+runner = "ctest"
+build-dir = "build/{build-type}"

@@ -1,6 +1,6 @@
 use crate::{Error, Result};
 
-pub const RUSTFMT_CONFIGS: &[&str] = &["rustfmt.toml", ".rustfmt.toml"];
+pub const RUSTFMT_CONFIGS: &[&str] = &[".rustfmt.toml", "rustfmt.toml"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, derive_more::Display)]
 #[serde(rename_all = "lowercase")]
@@ -12,26 +12,27 @@ pub enum RustfmtChannel {
 
 impl RustfmtChannel {
   pub fn from_path(root: &std::path::Path) -> Result<Self> {
-    for name in RUSTFMT_CONFIGS {
-      let path = root.join(name);
-      let Some(text) = crate::fs::read_optional(&path)? else {
-        continue;
-      };
-      let table: toml::Table = toml::from_str(&text).map_err(|source| Error::Toml {
-        path,
-        source: Box::new(source),
-      })?;
-      let unstable = table
-        .get("unstable_features")
-        .and_then(toml::Value::as_bool)
-        .unwrap_or(false);
-      return Ok(if unstable {
-        Self::Nightly
-      } else {
-        Self::Stable
-      });
-    }
-    Ok(Self::Stable)
+    let config = root
+      .ancestors()
+      .flat_map(|dir| RUSTFMT_CONFIGS.iter().map(move |name| dir.join(name)))
+      .find(|path| path.is_file());
+    let Some(path) = config else {
+      return Ok(Self::Stable);
+    };
+    let text = crate::fs::read_to_string(&path)?;
+    let table: toml::Table = toml::from_str(&text).map_err(|source| Error::Toml {
+      path,
+      source: Box::new(source),
+    })?;
+    let unstable = table
+      .get("unstable_features")
+      .and_then(toml::Value::as_bool)
+      .unwrap_or(false);
+    Ok(if unstable {
+      Self::Nightly
+    } else {
+      Self::Stable
+    })
   }
 }
 
@@ -74,6 +75,27 @@ mod tests {
     assert_eq!(
       RustfmtChannel::from_path(dir.path()).unwrap(),
       RustfmtChannel::Nightly
+    );
+  }
+
+  #[test]
+  fn the_nearest_ancestor_config_wins() {
+    let dir = tempfile::tempdir().unwrap();
+    let nested = dir.path().join("tests/project");
+    std::fs::create_dir_all(&nested).unwrap();
+    std::fs::write(
+      dir.path().join("rustfmt.toml"),
+      "unstable_features = true\n",
+    )
+    .unwrap();
+    assert_eq!(
+      RustfmtChannel::from_path(&nested).unwrap(),
+      RustfmtChannel::Nightly
+    );
+    std::fs::write(nested.join("rustfmt.toml"), "edition = \"2024\"\n").unwrap();
+    assert_eq!(
+      RustfmtChannel::from_path(&nested).unwrap(),
+      RustfmtChannel::Stable
     );
   }
 
