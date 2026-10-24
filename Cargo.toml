@@ -10,7 +10,17 @@ homepage = "https://github.com/whs31/wkit"
 repository = "https://github.com/whs31/wkit"
 keywords = ["cli", "build", "conan", "cmake", "cargo"]
 categories = ["command-line-utilities", "development-tools"]
-exclude = ["tests"]
+include = ["/src", "/LICENSE", "/README.md"]
+
+[package.metadata.deb]
+extended-description = "wkit versions, formats, checks, builds, tests, packages and installs C, C++ and Rust projects described by a small wkit.toml, and keeps multi-repo workspaces in sync."
+section = "devel"
+priority = "optional"
+depends = "$auto, git"
+assets = [
+  ["target/release/wkit", "usr/bin/", "755"],
+  ["README.md", "usr/share/doc/wkit/README.md", "644"],
+]
 
 [dependencies]
 anstream = "1"

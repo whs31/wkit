@@ -4,3 +4,8 @@ debug
 *.pdb
 **/mutants.out*/
 /.idea/
+/pkg/arch/*.tar.gz
+/pkg/arch/pkg/
+/pkg/arch/src/
+/build/
+/.ci-cache/

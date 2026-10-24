@@ -1,0 +1,41 @@
+# Maintainer: whs31 <kerbalspacefruit@gmail.com>
+pkgname=wkit
+pkgver=0.1.0
+pkgrel=1
+_source_version=0.1.0
+pkgdesc='One CLI for versioning, formatting, checking, building and testing C, C++ and Rust projects'
+arch=(x86_64)
+url='https://github.com/whs31/wkit'
+license=(MIT)
+depends=(gcc-libs glibc git)
+makedepends=(cargo)
+optdepends=(
+  'cmake: CMake builds and packages'
+  'conan: Conan builds and packages'
+  'clang: clang-format and clang-tidy'
+  'uv: pinned formatter and linter versions'
+)
+options=(!lto !debug)
+source=("$pkgname-$_source_version.tar.gz")
+sha256sums=(SKIP)
+
+prepare() {
+  cd "$pkgname-$_source_version"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$pkgname-$_source_version"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  export RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=$srcdir=/usr/src/debug/$pkgname-$pkgver"
+  cargo build --frozen --release
+}
+
+package() {
+  cd "$pkgname-$_source_version"
+  install -Dm755 target/release/wkit "$pkgdir/usr/bin/wkit"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/wkit/README.md"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/wkit/LICENSE"
+}
