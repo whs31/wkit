@@ -163,6 +163,10 @@ fn test_rejects_unknown_suites_with_a_hint() {
 }
 
 #[test]
+#[cfg_attr(
+  windows,
+  ignore = "the Visual Studio generator is multi-config; wkit expects single-config build dirs"
+)]
 fn plain_cmake_example_builds_before_testing() {
   if which::which("cmake").is_err() {
     return;
@@ -184,6 +188,10 @@ fn plain_cmake_example_builds_before_testing() {
 }
 
 #[test]
+#[cfg_attr(
+  windows,
+  ignore = "the Visual Studio generator is multi-config; wkit expects single-config build dirs"
+)]
 fn plain_cmake_example_runs_and_links_compile_commands() {
   if which::which("cmake").is_err() {
     return;
@@ -244,6 +252,10 @@ fn clean_removes_workspace_package_outputs() {
 }
 
 #[test]
+#[cfg_attr(
+  windows,
+  ignore = "the Visual Studio generator is multi-config; wkit expects single-config build dirs"
+)]
 fn cmake_example_packages_and_plans_an_install() {
   if which::which("cmake").is_err() {
     return;

@@ -236,12 +236,12 @@ struct PluginMeta {
 impl PluginMeta {
   fn parse(text: &str) -> Self {
     let local = lazy_regex::regex!(
-      r"(?m)^[ \t]*local[ \t]+(?<name>[A-Za-z_]\w*)[ \t]*=[ \t]*(?<expr>.+?)[ \t]*;?[ \t]*$"
+      r"(?mR)^[ \t]*local[ \t]+(?<name>[A-Za-z_]\w*)[ \t]*=[ \t]*(?<expr>.+?)[ \t]*;?[ \t]*$"
     );
     let uuid =
-      lazy_regex::regex!(r"(?m)^[ \t]*uuid[ \t]*=[ \t]*(?<expr>.+?)[ \t]*,?[ \t]*(?:--.*)?$");
+      lazy_regex::regex!(r"(?mR)^[ \t]*uuid[ \t]*=[ \t]*(?<expr>.+?)[ \t]*,?[ \t]*(?:--.*)?$");
     let version =
-      lazy_regex::regex!(r"(?m)^[ \t]*version[ \t]*=[ \t]*(?<expr>.+?)[ \t]*,?[ \t]*(?:--.*)?$");
+      lazy_regex::regex!(r"(?mR)^[ \t]*version[ \t]*=[ \t]*(?<expr>.+?)[ \t]*,?[ \t]*(?:--.*)?$");
     let call = lazy_regex::regex!(
       r#"PluginDependency[.:]new\(\s*(?<uuid>[^,]+?)\s*,\s*(?<range>(?:mms\.)?VersionRange[.:]\w+\([^)]*\)|"[^"]*"|[A-Za-z_][\w.]*)\s*\)"#
     );
@@ -578,8 +578,7 @@ plugin = {
 
   #[test]
   fn reads_plugins_that_resolve_uuids_through_locals() {
-    let meta = PluginMeta::parse(
-      r#"local uuid = mms.Uuid.from_string("f04eca57-2fa9-42d3-9528-0dc63e63c3d2")
+    let text = r#"local uuid = mms.Uuid.from_string("f04eca57-2fa9-42d3-9528-0dc63e63c3d2")
 local planner_uuid = "15cac520-303e-43d6-bce5-5d977134340a"
 
 plugin = {
@@ -590,8 +589,9 @@ plugin = {
         mms.PluginDependency.new(other, mms.VersionRange:any_with_prerelease())
     },
 }
-"#,
-    );
+"#;
+    let meta = PluginMeta::parse(text);
+    assert_eq!(PluginMeta::parse(&text.replace('\n', "\r\n")), meta);
     assert_eq!(
       meta.uuid,
       Some(literal("f04eca57-2fa9-42d3-9528-0dc63e63c3d2"))
