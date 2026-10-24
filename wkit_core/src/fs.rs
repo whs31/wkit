@@ -182,7 +182,7 @@ mod tests {
     for f in ["src/a.cc", "tests/t.cc", "gen/g.cc"] {
       touch(root, f);
     }
-    std::fs::write(root.join("../.gitignore"), "gen/\n").unwrap();
+    std::fs::write(root.join(".gitignore"), "gen/\n").unwrap();
     let all = SourceSet::new(root).extensions(["cc"]).collect().unwrap();
     assert_eq!(rel(root, all), ["src/a.cc", "tests/t.cc"]);
     let only_src = SourceSet::new(root)
@@ -200,7 +200,7 @@ mod tests {
     std::fs::create_dir_all(dir.path().join("a/b")).unwrap();
     assert_eq!(
       find_upwards(&dir.path().join("a/b"), "wkit.toml"),
-      Some(dir.path().join("../wkit.toml"))
+      Some(dir.path().join("wkit.toml"))
     );
     assert_eq!(find_upwards(&dir.path().join("a/b"), "nope.toml"), None);
   }

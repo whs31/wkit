@@ -45,7 +45,7 @@ pub fn build_system(root: &Path) -> Option<BuildSystem> {
 
 pub fn languages(root: &Path) -> Result<BTreeSet<Language>> {
   let mut found = BTreeSet::new();
-  if root.join("../../Cargo.toml").is_file() {
+  if root.join("Cargo.toml").is_file() {
     found.insert(Language::Rust);
   }
   for file in SourceSet::new(root).collect()? {

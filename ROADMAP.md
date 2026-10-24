@@ -36,7 +36,7 @@ On Windows, 60+ of these files exist only as `.ps1` twins of a `.sh` script. Bui
 | Crate | Status | Contents |
 | --- | --- | --- |
 | `wkit_core` | ✅ | cargo-style `Shell` + progress, `ProcessBuilder`, semver/CalVer bumping and flavors (full, pkgver, numeric), language/build-system/rustfmt-channel detection, gitignore-aware source walking, uv-pinned tools |
-| `wkit_manifest` | ✅ | `wkit.toml` schema, shorthand forms, unused-key warnings, validation, project discovery. Reference: [`reference.toml`](crates/wkit_manifest/tests/fixtures/reference.toml) |
+| `wkit_manifest` | ✅ | `wkit.toml` schema, shorthand forms, unused-key warnings, validation, project discovery. Reference: [`reference.toml`](wkit_manifest/tests/fixtures/reference.toml) |
 | `wkit_version` | M1 | per-kind editors that preserve formatting: conanfile class attribute, CMake `project(VERSION)`, Cargo via `toml_edit` (`[workspace.package]`/`[package]` + workspace members in `Cargo.lock`), PKGBUILD `pkgver`/`_source_version`/`pkgrel=1`, lua/regex |
 | `wkit_fmt` | M1 | rustfmt (channel auto-detected), clang-format batches in parallel, changed-file report, `--check` |
 | `wkit_check` | M2 | clippy, clang-tidy (compile db discovery, gcc-only flag stripping, parallel, result cache), custom checks, summary table |
