@@ -1,6 +1,6 @@
 # Example projects
 
-Mock projects that wkit is tested against (`wkit/tests/examples.rs`). They are small but real:
+Mock projects that wkit is tested against (`tests/examples.rs`). They are small but real:
 every Conan graph resolves against ConanCenter, every project builds, and its tests pass.
 Keep versions consistent and sources formatted (`wkit -C tests/<name> fmt --check`).
 

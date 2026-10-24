@@ -74,6 +74,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
+name = "autocfg"
+version = "1.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
+
+[[package]]
 name = "base64"
 version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -286,6 +292,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "either"
+version = "1.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
+
+[[package]]
 name = "encode_unicode"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -338,6 +350,15 @@ dependencies = [
  "crc32fast",
  "miniz_oxide",
  "zlib-rs",
+]
+
+[[package]]
+name = "fs-err"
+version = "3.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5c95b673b8f6f7235229ae11c5642d81b04c2e64c1e2fb417bc0cf73ca45f29"
+dependencies = [
+ "autocfg",
 ]
 
 [[package]]
@@ -544,6 +565,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy-regex"
+version = "3.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0a2cce8a22920a29fdcc8c9170aa5d29edd9fbcf8bea856e24c2cb1c2419f67"
+dependencies = [
+ "lazy-regex-proc_macros",
+ "once_cell",
+ "regex",
+]
+
+[[package]]
+name = "lazy-regex-proc_macros"
+version = "3.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f1e4b1f1d8c71edb4ff2b2150ec4606445fd2ddf67ddc097655daf59286baa6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "regex",
+ "syn 3.0.9",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.191"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -639,6 +683,26 @@ name = "r-efi"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
+
+[[package]]
+name = "rayon"
+version = "1.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb39b166781f92d482534ef4b4b1b2568f42613b53e5b6c160e24cfbfa30926d"
+dependencies = [
+ "either",
+ "rayon-core",
+]
+
+[[package]]
+name = "rayon-core"
+version = "1.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91"
+dependencies = [
+ "crossbeam-deque",
+ "crossbeam-utils",
+]
 
 [[package]]
 name = "regex"
@@ -844,6 +908,17 @@ name = "slab"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
+
+[[package]]
+name = "smart-default"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0eb01866308440fc64d6c44d9e86c5cc17adfe33c4d6eed55da9145044d0ffc1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
 
 [[package]]
 name = "strsim"
@@ -1244,160 +1319,31 @@ checksum = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
 name = "wkit"
 version = "0.1.0"
 dependencies = [
+ "anstream",
+ "anstyle",
  "anyhow",
  "clap",
+ "derive_more",
+ "flate2",
+ "fs-err",
  "globset",
+ "ignore",
+ "indicatif",
+ "jiff",
+ "lazy-regex",
+ "rayon",
  "regex",
  "semver",
  "serde",
+ "serde_ignored",
  "serde_json",
+ "smart-default",
+ "tar",
  "tempfile",
  "thiserror",
  "toml",
  "ureq",
  "which",
- "wkit_build",
- "wkit_check",
- "wkit_core",
- "wkit_fmt",
- "wkit_manifest",
- "wkit_package",
- "wkit_test",
- "wkit_version",
- "wkit_ws",
-]
-
-[[package]]
-name = "wkit_build"
-version = "0.1.0"
-dependencies = [
- "derive_more",
- "indicatif",
- "regex",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "which",
- "wkit_core",
- "wkit_manifest",
- "wkit_version",
-]
-
-[[package]]
-name = "wkit_check"
-version = "0.1.0"
-dependencies = [
- "derive_more",
- "regex",
- "semver",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "wkit_core",
- "wkit_fmt",
- "wkit_manifest",
- "wkit_version",
-]
-
-[[package]]
-name = "wkit_core"
-version = "0.1.0"
-dependencies = [
- "anstream",
- "anstyle",
- "derive_more",
- "ignore",
- "indicatif",
- "jiff",
- "semver",
- "serde",
- "tempfile",
- "thiserror",
- "toml",
- "which",
-]
-
-[[package]]
-name = "wkit_fmt"
-version = "0.1.0"
-dependencies = [
- "indicatif",
- "regex",
- "tempfile",
- "wkit_core",
- "wkit_manifest",
-]
-
-[[package]]
-name = "wkit_manifest"
-version = "0.1.0"
-dependencies = [
- "derive_more",
- "regex",
- "semver",
- "serde",
- "serde_ignored",
- "tempfile",
- "thiserror",
- "toml",
- "wkit_core",
-]
-
-[[package]]
-name = "wkit_package"
-version = "0.1.0"
-dependencies = [
- "derive_more",
- "flate2",
- "globset",
- "tar",
- "tempfile",
- "thiserror",
- "which",
- "wkit_build",
- "wkit_core",
- "wkit_manifest",
- "wkit_version",
-]
-
-[[package]]
-name = "wkit_test"
-version = "0.1.0"
-dependencies = [
- "tempfile",
- "thiserror",
- "toml",
- "which",
- "wkit_core",
- "wkit_manifest",
-]
-
-[[package]]
-name = "wkit_version"
-version = "0.1.0"
-dependencies = [
- "derive_more",
- "regex",
- "tempfile",
- "thiserror",
- "toml",
- "wkit_core",
- "wkit_manifest",
-]
-
-[[package]]
-name = "wkit_ws"
-version = "0.1.0"
-dependencies = [
- "indicatif",
- "regex",
- "serde_json",
- "tempfile",
- "thiserror",
- "toml",
- "wkit_core",
 ]
 
 [[package]]
