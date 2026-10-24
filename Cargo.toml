@@ -10,6 +10,7 @@ members = [
     "wkit_package",
     "wkit_test",
     "wkit_version",
+    "wkit_ws",
 ]
 exclude = ["tests"]
 
@@ -31,6 +32,7 @@ wkit_manifest = { path = "wkit_manifest", version = "0.1.0" }
 wkit_package = { path = "wkit_package", version = "0.1.0" }
 wkit_test = { path = "wkit_test", version = "0.1.0" }
 wkit_version = { path = "wkit_version", version = "0.1.0" }
+wkit_ws = { path = "wkit_ws", version = "0.1.0" }
 
 anstream = "1"
 anstyle = "1"

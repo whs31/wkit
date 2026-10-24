@@ -1264,6 +1264,7 @@ dependencies = [
  "wkit_package",
  "wkit_test",
  "wkit_version",
+ "wkit_ws",
 ]
 
 [[package]]
@@ -1384,6 +1385,19 @@ dependencies = [
  "toml",
  "wkit_core",
  "wkit_manifest",
+]
+
+[[package]]
+name = "wkit_ws"
+version = "0.1.0"
+dependencies = [
+ "indicatif",
+ "regex",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "toml",
+ "wkit_core",
 ]
 
 [[package]]

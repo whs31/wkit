@@ -23,6 +23,7 @@ wkit_manifest.workspace = true
 wkit_package.workspace = true
 wkit_test.workspace = true
 wkit_version.workspace = true
+wkit_ws.workspace = true
 anyhow.workspace = true
 clap.workspace = true
 globset.workspace = true

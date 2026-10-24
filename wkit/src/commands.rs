@@ -20,13 +20,14 @@ mod self_update;
 mod smoke;
 mod test;
 mod uninstall;
+mod ws;
 
 use self::{
   build::BuildArgs, bump::BumpArgs, check::CheckArgs, clean::CleanArgs, conan::ConanArgs,
   configure::ConfigureArgs, create::CreateArgs, doctor::DoctorArgs, external::External,
   fmt::FmtArgs, graph::GraphArgs, info::InfoArgs, init::InitArgs, install::InstallArgs,
   package::PackageArgs, run::RunArgs, run_script::RunScriptArgs, self_update::SelfUpdateArgs,
-  smoke::SmokeArgs, test::TestArgs, uninstall::UninstallArgs,
+  smoke::SmokeArgs, test::TestArgs, uninstall::UninstallArgs, ws::WsArgs,
 };
 use crate::context::Context;
 
@@ -80,6 +81,10 @@ pub enum Command {
   /// Remove what `wkit install` installed
   Uninstall(UninstallArgs),
 
+  /// Manage the repositories of a multi-repo workspace (`workspace.toml`)
+  #[command(subcommand_value_name = "COMMAND")]
+  Ws(WsArgs),
+
   /// Run a script from `[scripts]`
   #[command(visible_alias = "x")]
   RunScript(RunScriptArgs),
@@ -118,6 +123,7 @@ impl Command {
       Self::Package(args) => args.run(ctx),
       Self::Install(args) => args.run(ctx),
       Self::Uninstall(args) => args.run(ctx),
+      Self::Ws(args) => args.run(ctx),
       Self::RunScript(args) => args.run(ctx),
       Self::Doctor(_) => DoctorArgs::run(ctx),
       Self::Info(args) => args.run(ctx),

@@ -43,7 +43,7 @@ On Windows, 60+ of these files exist only as `.ps1` twins of a `.sh` script. Bui
 | `wkit_test`     | M2     | cargo/nextest/ctest/catch2 runners, JUnit aggregation                                                                                                                                                                                                                          |
 | `wkit_build`    | M3     | conan (single and workspace), plain CMake (presets or `build/<type>`) and cargo drivers, build type from the Conan profile, conan/CMake/ninja output translated to cargo-style lines and a progress bar                                                                        |
 | `wkit_package`  | M4     | arch (makepkg + git tarball), deb (own writer or cargo-deb), windows (CPack), apt/pacman/file installs                                                                                                                                                                         |
-| `wkit_ws`       | M5     | multi-repo workspace management (`workspace.toml`/`workspace.lock` compatible)                                                                                                                                                                                                 |
+| `wkit_ws`       | M5     | multi-repo workspaces (`workspace.toml`/`workspace.lock` compatible): init/restore/update/lock/status/add/exec/fmt, parallel git with progress, commit/push                                                                                                                    |
 | `wkit`          | ✅ M1  | the binary: clap CLI, command dispatch, `[scripts]`, `wkit-<name>` external subcommands, `self-update`, `init`, `clean`                                                                                                                                                        |
 
 ## Milestones
@@ -118,6 +118,12 @@ Enough to delete `check.py`, `clang_tools.py`, `check_versions.py` and `test.sh`
 - [x] MMS extension: `meta.lua` validation (uuid, dependency ranges), plugin version ⇔ conanfile
   - `mms` check stage, on when the tree has exactly one `meta.lua` (or `check.mms.meta` names it). UUIDs resolve through `local` variables and `mms.Uuid.from_string`; `mms.VersionRange.parse` and `{ name, version }` ranges must parse and match some version; the plugin must not depend on itself
   - The plugin version must equal `[version]`'s current version, else the conanfile's. `mms.app.version` is reported as a note
+- [x] `wkit ws`: multi-repo workspace management, replacing `scripts/workspace.py`, `exec.py`, `fmt.py` and `commit.py`
+  - `workspace.toml` (`version = 1`, ordered `[[project]] path/url/branch`) and `workspace.lock` (`[[revision]] path/commit`) are read and written in the same format, so the Python tooling keeps working side by side
+  - `init` clones into `.name.partial` and moves it into place only when checked out; projects missing from the lock are cloned at their branch tip and locked. `restore` returns clean projects to the lock, `update` fast-forwards and reports ahead/diverged/dirty projects instead of touching them
+  - `lock [--commit [--push]]` refuses dirty projects and refuses to push a lock that references unpublished commits; `update --commit` relocks and commits. `add <url> [path] [-b B]` derives the path from the URL layout, keeps related projects together in `workspace.toml` and updates `.gitignore`
+  - `status`, `exec` (one argument runs through the shell), and `fmt [--commit [--push]]` (`wkit fmt` where there is a `wkit.toml`, else the project's `just fmt`/`format`)
+  - `commit fmt|lock [--push]` commits pending project changes as `CHORE: Formatting`, or `workspace.lock` as `CHORE: Update lock` with the moved projects listed
 
 ## Cross-cutting rules
 - Status goes to stderr in cargo style (`  Formatting`, `    Checking`, `     Bumping`, `    Finished`). Data goes to stdout. Progress bars are hidden when stderr is not a TTY or with `-q`
