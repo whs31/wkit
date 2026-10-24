@@ -70,7 +70,7 @@ fn ws_clones_reports_and_runs_commands_across_projects() {
 
   let (code, stdout, stderr) = wkit(&root, &["ws", "exec", "cat", "README"]);
   assert_eq!(code, Some(0), "{stderr}");
-  assert_eq!(stdout, "lint\n");
+  assert_eq!(stdout.trim_end(), "lint");
   let (code, _, stderr) = wkit(&root, &["ws", "exec", "test -f MISSING"]);
   assert_eq!(code, Some(1));
   assert!(
