@@ -540,9 +540,14 @@ mod tests {
       ..TestOptions::default()
     };
     let tester = Tester::plan(&project, &options).unwrap();
-    let [suite] = &tester.suites[..] else {
-      panic!("{:?}", tester.suites);
+    assert_eq!(tester.suites.len(), 1, "{:?}", tester.suites);
+    let ctx = SuiteContext {
+      project: &project,
+      options: &options,
+      ci_seed: Some("7"),
+      headless: false,
     };
+    let suite = &ctx.plan(&project.manifest.test.suites[0]).unwrap();
     assert_eq!(Path::new(suite.process.get_program()), exe);
     let junit = suite.junit.as_ref().unwrap();
     assert_eq!(junit, &dir.path().join("out/suites/unit.xml"));
@@ -550,6 +555,10 @@ mod tests {
       args(suite),
       [
         "[fast]",
+        "--order",
+        "rand",
+        "--rng-seed",
+        "7",
         "--reporter",
         &format!("JUnit::out={}", junit.display()),
         "--reporter",

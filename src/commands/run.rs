@@ -233,15 +233,11 @@ impl SmokeRun {
   fn stop(child: &mut std::process::Child) -> Result<()> {
     #[cfg(unix)]
     {
-      let group = format!("-{}", child.id());
-      let signal = |name: &str| {
-        ProcessBuilder::new("kill")
-          .args([name, "--", &group])
-          .output_unchecked()
-      };
-      signal("-TERM")?;
+      use rustix::process::{Pid, Signal, kill_process_group};
+      let group = Pid::from_child(child);
+      kill_process_group(group, Signal::TERM).ok();
       Self::wait(child, Self::GRACE)?;
-      signal("-KILL")?;
+      kill_process_group(group, Signal::KILL).ok();
     }
     child.kill().ok();
     child.wait()?;

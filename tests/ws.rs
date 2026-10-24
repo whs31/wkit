@@ -12,6 +12,11 @@ fn git(dir: &std::path::Path, args: &[&str]) {
   );
 }
 
+fn init(dir: &std::path::Path, flags: &[&str]) {
+  git(dir, &[&["init", "-q"], flags].concat());
+  git(dir, &["symbolic-ref", "HEAD", "refs/heads/main"]);
+}
+
 fn wkit(dir: &std::path::Path, args: &[&str]) -> (Option<i32>, String, String) {
   let output = std::process::Command::new(env!("CARGO_BIN_EXE_wkit"))
     .arg("-C")
@@ -34,8 +39,8 @@ fn ws_clones_reports_and_runs_commands_across_projects() {
   let seed = dir.path().join("seed");
   std::fs::create_dir_all(&remote).unwrap();
   std::fs::create_dir_all(&seed).unwrap();
-  git(&remote, &["init", "-q", "--bare", "-b", "main"]);
-  git(&seed, &["init", "-q", "-b", "main"]);
+  init(&remote, &["--bare"]);
+  init(&seed, &[]);
   std::fs::write(seed.join("README"), "lint\n").unwrap();
   git(&seed, &["add", "."]);
   git(&seed, &["commit", "-qm", "init"]);

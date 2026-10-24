@@ -172,17 +172,12 @@ impl<'w> Committer<'w> {
     if files.is_empty() {
       return TaskOutcome::fresh("no changes");
     }
-    let committed = repo.git_with_input(
-      &[
-        "commit",
-        "--quiet",
-        "--message",
-        message,
-        "--pathspec-from-file=-",
-        "--pathspec-file-nul",
-      ],
-      &files.join("\0"),
-    );
+    let paths: String = files.iter().flat_map(|f| [f.as_str(), "\0"]).collect();
+    let staged = repo.git_with_input(&["update-index", "-z", "--remove", "--stdin"], &paths);
+    if !staged.success {
+      return TaskOutcome::git_failed("staging failed", &staged);
+    }
+    let committed = repo.git(&["commit", "--quiet", "--message", message]);
     if !committed.success {
       return TaskOutcome::git_failed("commit failed", &committed);
     }

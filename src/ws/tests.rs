@@ -180,6 +180,14 @@ fn git(dir: &Path, args: &[&str]) {
   );
 }
 
+fn init(dir: &Path, flags: &[&str], branch: &str) {
+  git(dir, &[&["init", "-q"], flags].concat());
+  git(
+    dir,
+    &["symbolic-ref", "HEAD", &format!("refs/heads/{branch}")],
+  );
+}
+
 struct Fixture {
   dir: tempfile::TempDir,
 }
@@ -201,7 +209,7 @@ impl Fixture {
     let root = fixture.root();
     std::fs::create_dir_all(&root).unwrap();
     std::fs::write(root.join(MANIFEST_FILE), manifest).unwrap();
-    git(&root, &["init", "-q", "-b", "main"]);
+    init(&root, &[], "main");
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "workspace"]);
     fixture
@@ -229,10 +237,10 @@ impl Fixture {
   fn remote(&self, path: &str, branch: &str) {
     let url = self.url(path);
     std::fs::create_dir_all(&url).unwrap();
-    git(Path::new(&url), &["init", "-q", "--bare", "-b", branch]);
+    init(Path::new(&url), &["--bare"], branch);
     let seed = self.seed(path);
     std::fs::create_dir_all(&seed).unwrap();
-    git(&seed, &["init", "-q", "-b", branch]);
+    init(&seed, &[], branch);
     git(&seed, &["remote", "add", "origin", &url]);
     self.push_commit(path, "first");
   }
