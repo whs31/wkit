@@ -1235,6 +1235,24 @@ dependencies = [
  "toml",
  "ureq",
  "which",
+ "wkit_check",
+ "wkit_core",
+ "wkit_fmt",
+ "wkit_manifest",
+ "wkit_test",
+ "wkit_version",
+]
+
+[[package]]
+name = "wkit_check"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
  "wkit_core",
  "wkit_fmt",
  "wkit_manifest",
@@ -1282,6 +1300,18 @@ dependencies = [
  "thiserror",
  "toml",
  "wkit_core",
+]
+
+[[package]]
+name = "wkit_test"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+ "thiserror",
+ "toml",
+ "which",
+ "wkit_core",
+ "wkit_manifest",
 ]
 
 [[package]]

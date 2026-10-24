@@ -1,14 +1,16 @@
 mod bump;
+mod check;
 mod clean;
 mod external;
 mod fmt;
 mod init;
 mod run_script;
 mod self_update;
+mod test;
 
 use self::{
-  bump::BumpArgs, clean::CleanArgs, external::External, fmt::FmtArgs, init::InitArgs,
-  run_script::RunScriptArgs, self_update::SelfUpdateArgs,
+  bump::BumpArgs, check::CheckArgs, clean::CleanArgs, external::External, fmt::FmtArgs,
+  init::InitArgs, run_script::RunScriptArgs, self_update::SelfUpdateArgs, test::TestArgs,
 };
 use crate::context::Context;
 
@@ -20,6 +22,12 @@ pub enum Command {
   /// Format Rust and C/C++ sources
   #[command(alias = "format")]
   Fmt(FmtArgs),
+
+  /// Run format, version, lint and custom checks
+  Check(CheckArgs),
+
+  /// Run the project's test suites
+  Test(TestArgs),
 
   /// Remove build outputs and generated files
   Clean(CleanArgs),
@@ -43,6 +51,8 @@ impl Command {
     match self {
       Self::Bump(args) => args.run(ctx),
       Self::Fmt(args) => args.run(ctx),
+      Self::Check(args) => args.run(ctx),
+      Self::Test(args) => args.run(ctx),
       Self::Clean(args) => args.run(ctx),
       Self::RunScript(args) => args.run(ctx),
       Self::SelfUpdate(args) => args.run(ctx),

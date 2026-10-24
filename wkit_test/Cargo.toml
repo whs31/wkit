@@ -1,0 +1,23 @@
+[package]
+name = "wkit_test"
+description = "Test runners for wkit projects: cargo, nextest, ctest and Catch2, with merged JUnit reports"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+wkit_core.workspace = true
+wkit_manifest.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+which.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,3 +1,5 @@
+pub use anstyle::Style;
+
 pub const HEADER: anstyle::Style = anstyle::AnsiColor::Green.on_default().bold();
 pub const PROGRESS: anstyle::Style = anstyle::AnsiColor::Cyan.on_default().bold();
 pub const ERROR: anstyle::Style = anstyle::AnsiColor::Red.on_default().bold();

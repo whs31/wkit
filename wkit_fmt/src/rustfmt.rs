@@ -51,7 +51,7 @@ impl Rustfmt {
   pub fn run(&self, shell: &mut Shell, mode: Mode) -> Result<Vec<std::path::PathBuf>> {
     let command = self.command(mode);
     shell.status(
-      "Formatting",
+      mode.label(),
       format_args!("Rust sources ({})", self.label()),
     )?;
     shell.verbose(|s| s.status("Running", &command))?;

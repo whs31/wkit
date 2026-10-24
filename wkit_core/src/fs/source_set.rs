@@ -6,6 +6,7 @@ pub struct SourceSet {
   extensions: Vec<String>,
   include: Vec<String>,
   exclude: Vec<String>,
+  hidden: bool,
 }
 
 impl SourceSet {
@@ -29,7 +30,14 @@ impl SourceSet {
         .iter()
         .map(|&s| s.to_owned())
         .collect(),
+      hidden: false,
     }
+  }
+
+  #[must_use]
+  pub fn hidden(mut self, hidden: bool) -> Self {
+    self.hidden = hidden;
+    self
   }
 
   #[must_use]
@@ -65,11 +73,15 @@ impl SourceSet {
     for glob in &self.exclude {
       overrides.add(&format!("!{glob}")).map_err(walk_error)?;
     }
+    if self.hidden {
+      overrides.add("!.git/").map_err(walk_error)?;
+    }
     let overrides = overrides.build().map_err(walk_error)?;
 
     let mut files = Vec::new();
     for entry in ignore::WalkBuilder::new(&self.root)
       .overrides(overrides)
+      .hidden(!self.hidden)
       .require_git(false)
       .build()
     {
@@ -157,5 +169,22 @@ mod tests {
       .collect()
       .unwrap();
     assert_eq!(rel(root, only_src), ["src/a.cc"]);
+  }
+
+  #[test]
+  fn hidden_files_are_opt_in() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    for f in [".env", ".config/x.toml", ".git/config", "a.txt"] {
+      touch(root, f);
+    }
+    assert_eq!(
+      rel(root, SourceSet::new(root).collect().unwrap()),
+      ["a.txt"]
+    );
+    assert_eq!(
+      rel(root, SourceSet::new(root).hidden(true).collect().unwrap()),
+      [".config/x.toml", ".env", "a.txt"]
+    );
   }
 }

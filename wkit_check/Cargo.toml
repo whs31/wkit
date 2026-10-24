@@ -1,0 +1,26 @@
+[package]
+name = "wkit_check"
+description = "Checks for wkit projects: format, versions, clippy, clang-tidy with a result cache, secrets and custom checks"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+wkit_core.workspace = true
+wkit_fmt.workspace = true
+wkit_manifest.workspace = true
+wkit_version.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+derive_more.workspace = true
+thiserror.workspace = true
+

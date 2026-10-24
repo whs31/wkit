@@ -1,7 +1,7 @@
 use wkit_core::{Language, detect::BuildSystem, version::Scheme};
 
 use super::Manifest;
-use crate::{TestRunner, VersionFileKind, VersionSection};
+use crate::{CheckSection, TestRunner, VersionFileKind, VersionSection};
 
 pub(super) struct Validator<'a> {
   manifest: &'a Manifest,
@@ -162,8 +162,16 @@ impl<'a> Validator<'a> {
   fn tasks(&mut self) {
     let mut seen = std::collections::BTreeSet::new();
     for check in &self.manifest.check.custom {
-      if check.name.trim().is_empty() {
-        self.report("`[[check.custom]]` entries need a non-empty `name`");
+      if check.name.trim().is_empty() || check.name.contains([' ', '\t', ',']) {
+        self.report(format!(
+          "custom check name `{}` must be non-empty and contain no spaces or commas",
+          check.name
+        ));
+      } else if CheckSection::BUILTIN_STAGES.contains(&check.name.as_str()) {
+        self.report(format!(
+          "custom check `{}` clashes with the built-in check of that name",
+          check.name
+        ));
       } else if !seen.insert(check.name.as_str()) {
         self.report(format!("duplicate custom check `{}`", check.name));
       }

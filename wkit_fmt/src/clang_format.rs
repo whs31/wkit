@@ -65,10 +65,10 @@ impl ClangFormat {
     }
     self.tool.command().arg("--version").output()?;
     shell.status(
-      "Formatting",
+      mode.label(),
       format_args!("{} C/C++ files with {}", sources.len(), self.tool),
     )?;
-    let progress = shell.progress("Formatting", sources.len() as u64);
+    let progress = shell.progress(mode.label(), sources.len() as u64);
     let before = match mode {
       Mode::Write => Some(self.digests(&sources)?),
       Mode::Check => None,

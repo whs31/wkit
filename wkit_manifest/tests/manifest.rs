@@ -55,6 +55,7 @@ fn reference_manifest_is_complete_and_valid() {
   assert_eq!(m.format.rust.channel, Some(RustfmtChannel::Nightly));
   assert!(m.format.cpp.extensions.contains(&"cu".to_owned()));
   assert!(m.clippy_enabled() && m.clang_tidy_enabled());
+  assert!(!m.check.whitespace && m.check.secrets);
   assert_eq!(
     m.check.custom[0].run,
     Command::Argv(vec!["python3".into(), "scripts/check_meta.py".into()])
@@ -86,7 +87,9 @@ fn minimal_manifest_gets_language_driven_defaults() {
     .manifest;
   assert!(m.cpp_format_enabled() && m.clang_tidy_enabled());
   assert!(!m.rust_format_enabled() && !m.clippy_enabled());
-  assert!(m.check.format && m.check.versions);
+  assert!(m.check.format && m.check.versions && m.check.secrets);
+  assert!(m.check.whitespace && m.check.pre_commit);
+  assert_eq!(m.test.junit_dir(), std::path::Path::new("build/junit"));
   assert_eq!(m.build.build_type, BuildType::Debug);
   assert!(m.version.is_none() && m.bins.is_empty() && m.default_bin().is_none());
   let clean = m.clean.effective_paths(m.languages());
@@ -157,6 +160,9 @@ fn validation_collects_every_problem() {
     [[check.custom]]
     name = "x"
     run = "true"
+    [[check.custom]]
+    name = "clippy"
+    run = "true"
     "#,
   );
   let expected = [
@@ -171,6 +177,7 @@ fn validation_collects_every_problem() {
     "`profile` only applies to nextest",
     "needs a `binary`",
     "duplicate custom check `x`",
+    "clashes with the built-in check",
   ];
   for needle in expected {
     assert!(

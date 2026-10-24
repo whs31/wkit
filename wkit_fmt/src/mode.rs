@@ -5,3 +5,12 @@ pub enum Mode {
 
   Check,
 }
+
+impl Mode {
+  pub fn label(self) -> &'static str {
+    match self {
+      Self::Write => "Formatting",
+      Self::Check => "Checking",
+    }
+  }
+}

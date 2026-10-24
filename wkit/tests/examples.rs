@@ -119,3 +119,45 @@ fn clean_dry_run_works_everywhere() {
     assert!(stderr.contains("no files deleted"), "{}", example.display());
   }
 }
+
+#[test]
+fn static_checks_pass_on_every_example() {
+  for example in examples() {
+    let (_, stderr) = succeed(&example, &["check", "--only", "versions"]);
+    assert!(
+      stderr.contains("ok versions"),
+      "{}: {stderr}",
+      example.display()
+    );
+    succeed(&example, &["check", "--only", "secrets,pre-commit"]);
+  }
+}
+
+#[test]
+fn check_fails_on_a_leaked_token() {
+  let dir = tempfile::tempdir().unwrap();
+  copy(&examples()[0], dir.path());
+  let token = format!("ghp_{}", "a1B2".repeat(9));
+  std::fs::write(dir.path().join("notes.txt"), format!("token = {token}\n")).unwrap();
+  let output = wkit(dir.path(), &["check", "--only", "secrets"]);
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  assert_eq!(output.status.code(), Some(1), "{stderr}");
+  assert!(stderr.contains("notes.txt:1"), "{stderr}");
+  assert!(stderr.contains("error: checks failed: secrets"), "{stderr}");
+}
+
+#[test]
+fn test_rejects_unknown_suites_with_a_hint() {
+  let example = examples()
+    .into_iter()
+    .find(|e| e.ends_with("conan-lib"))
+    .unwrap();
+  let output = wkit(&example, &["test", "--suite", "nope"]);
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  assert!(!output.status.success());
+  assert!(stderr.contains("unknown test suite `nope`"), "{stderr}");
+  assert!(
+    stderr.contains("help: expected one of: unit, ctest"),
+    "{stderr}"
+  );
+}

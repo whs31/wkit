@@ -42,6 +42,9 @@ exclude = ["/build/", "/vendor/", "/packaging/", "/cmake-build-*/"]
 [check]
 format = true                             # run formatters in check mode
 versions = true                           # every version file must agree
+secrets = true                            # no tokens or private keys in tracked files
+whitespace = false                        # `git diff --check HEAD`: no whitespace errors in uncommitted changes
+pre-commit = true                         # .pre-commit-config.yaml revs match [tools] pins
 
 [check.clippy]
 toolchain = "stable"
@@ -105,7 +108,7 @@ name = "xlink"
 package = "xlink"
 
 [test]
-junit-dir = "build/junit"
+junit-dir = "build/junit"                 # default: build/junit; `wkit test --junit` merges suites into junit.xml
 
 [[test.suite]]
 runner = "nextest"
