@@ -8,7 +8,7 @@ pub struct FmtArgs {
   #[arg(long)]
   check: bool,
 
-  /// Number of parallel clang-format jobs
+  /// Number of parallel formatter jobs
   #[arg(short, long, value_name = "N")]
   jobs: Option<std::num::NonZeroUsize>,
 }
@@ -20,7 +20,7 @@ impl FmtArgs {
     if formatter.is_empty() {
       ctx
         .shell
-        .warn("nothing to format: `format.rust` and `format.cpp` are disabled")?;
+        .warn("nothing to format: no formatter in `[format]` is enabled")?;
       return Ok(());
     }
     let start = std::time::Instant::now();

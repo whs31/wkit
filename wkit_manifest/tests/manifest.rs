@@ -57,6 +57,14 @@ fn reference_manifest_is_complete_and_valid() {
   assert!(m.format.cpp.extensions.contains(&"cu".to_owned()));
   assert!(m.clippy_enabled() && m.clang_tidy_enabled());
   assert!(!m.check.whitespace && m.check.secrets);
+  assert_eq!(m.format.qmlformat.args, ["--normalize"]);
+  assert_eq!(m.format.black.include, ["/scripts/"]);
+  assert_eq!(m.format.stylua.enabled, Some(false));
+  assert!(m.check.qmllint.enabled && m.check.mms.enabled == Some(true));
+  assert_eq!(
+    m.check.mms.meta.as_deref(),
+    Some(Path::new("src/plugin/meta.lua"))
+  );
   assert_eq!(
     m.check.custom[0].run,
     Command::Argv(vec!["python3".into(), "scripts/check_meta.py".into()])
@@ -183,6 +191,9 @@ fn validation_collects_every_problem() {
     run = "true"
     [[check.custom]]
     name = "clippy"
+    run = "true"
+    [[check.custom]]
+    name = "mms"
     run = "true"
 
     [package]

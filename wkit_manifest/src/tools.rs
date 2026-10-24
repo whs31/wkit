@@ -10,6 +10,13 @@ pub struct Tools(std::collections::BTreeMap<String, ToolEntry>);
 
 impl Tools {
   pub const DEFAULTS: &[(&str, &str)] = &[("clang-format", "23.1.3"), ("clang-tidy", "22.1.8")];
+  pub const QT_TOOLS: &[&str] = &["qmlformat", "qmllint", "qmlls"];
+  pub const QT_BIN_DIRS: &[&str] = &[
+    "/usr/lib/qt6/bin",
+    "/usr/lib64/qt6/bin",
+    "/usr/lib/x86_64-linux-gnu/qt6/bin",
+    "/usr/lib/aarch64-linux-gnu/qt6/bin",
+  ];
 
   pub fn get(&self, name: &str) -> Option<&ToolEntry> {
     self.0.get(name)
@@ -32,13 +39,34 @@ impl Tools {
           package: name.to_owned(),
           version: (*version).to_owned(),
         },
-        None => ToolSource::System,
+        None => {
+          Self::qt_binary(name, &Self::qt_bin_dirs()).map_or(ToolSource::System, ToolSource::Path)
+        }
       },
     };
     Tool {
       name: name.to_owned(),
       source,
     }
+  }
+
+  pub fn qt_binary(name: &str, dirs: &[std::path::PathBuf]) -> Option<std::path::PathBuf> {
+    if !Self::QT_TOOLS.contains(&name) {
+      return None;
+    }
+    let exe = format!("{name}{}", std::env::consts::EXE_SUFFIX);
+    dirs
+      .iter()
+      .map(|dir| dir.join(&exe))
+      .find(|path| path.is_file())
+  }
+
+  fn qt_bin_dirs() -> Vec<std::path::PathBuf> {
+    std::env::var_os("QT_HOST_BINS")
+      .map(std::path::PathBuf::from)
+      .into_iter()
+      .chain(Self::QT_BIN_DIRS.iter().map(std::path::PathBuf::from))
+      .collect()
   }
 }
 
@@ -57,9 +85,22 @@ mod tests {
     let t = tools("").resolve("clang-tidy", Path::new("/p"));
     assert_eq!(t, Tool::pinned("clang-tidy", "22.1.8"));
     assert_eq!(
-      tools("").resolve("qmllint", Path::new("/p")),
-      Tool::system("qmllint")
+      tools("").resolve("cmake", Path::new("/p")),
+      Tool::system("cmake")
     );
+  }
+
+  #[test]
+  fn qt_tools_prefer_qt6_installations() {
+    let dir = tempfile::tempdir().unwrap();
+    let dirs = [dir.path().join("missing"), dir.path().to_owned()];
+    assert_eq!(Tools::qt_binary("qmllint", &dirs), None);
+    let qmllint = dir
+      .path()
+      .join(format!("qmllint{}", std::env::consts::EXE_SUFFIX));
+    std::fs::write(&qmllint, "").unwrap();
+    assert_eq!(Tools::qt_binary("qmllint", &dirs), Some(qmllint));
+    assert_eq!(Tools::qt_binary("cmake", &dirs), None);
   }
 
   #[test]

@@ -38,8 +38,8 @@ On Windows, 60+ of these files exist only as `.ps1` twins of a `.sh` script. Bui
 | `wkit_core`     | ✅     | cargo-style `Shell` + progress, `ProcessBuilder`, semver/CalVer bumping and flavors (full, pkgver, numeric), language/build-system/rustfmt-channel detection, gitignore-aware source walking, uv-pinned tools                                                                  |
 | `wkit_manifest` | ✅     | `wkit.toml` schema, shorthand forms, unused-key warnings, validation, project discovery. Reference: [`reference.toml`](wkit_manifest/tests/fixtures/reference.toml)                                                                                                            |
 | `wkit_version`  | ✅     | format-preserving slot splicing: conanfile class attribute, CMake `project(VERSION)`, Cargo via spanned TOML (`[workspace.package]`/`[package]` + local `Cargo.lock` packages at the old version), PKGBUILD `_source_version`/`pkgver`/`pkgrel=1`, lua/regex; mismatch reports |
-| `wkit_fmt`      | ✅     | rustfmt (channel auto-detected), clang-format batches in parallel, changed-file report, `--check`                                                                                                                                                                              |
-| `wkit_check`    | M2     | clippy, clang-tidy (compile db discovery, gcc-only flag stripping, parallel, result cache), custom checks, summary table                                                                                                                                                       |
+| `wkit_fmt`      | ✅     | rustfmt (channel auto-detected), clang-format batches in parallel, qmlformat/black/stylua when configured, changed-file report, `--check`                                                                                                                                      |
+| `wkit_check`    | M2     | clippy, clang-tidy (compile db discovery, gcc-only flag stripping, parallel, result cache), qmllint, MMS `meta.lua` validation, custom checks, summary table                                                                                                                   |
 | `wkit_test`     | M2     | cargo/nextest/ctest/catch2 runners, JUnit aggregation                                                                                                                                                                                                                          |
 | `wkit_build`    | M3     | conan (single and workspace), plain CMake (presets or `build/<type>`) and cargo drivers, build type from the Conan profile, conan/CMake/ninja output translated to cargo-style lines and a progress bar                                                                        |
 | `wkit_package`  | M4     | arch (makepkg + git tarball), deb (own writer or cargo-deb), windows (CPack), apt/pacman/file installs                                                                                                                                                                         |
@@ -105,12 +105,19 @@ Enough to delete `check.py`, `clang_tools.py`, `check_versions.py` and `test.sh`
 - [x] Shared `[package]` settings: `name`, `exclude` (defaults drop `include/`, `lib/cmake`, `lib/pkgconfig`), extra `files`, `license`, and a `stage` hook that can patch or verify the staged tree (rpaths, forbidden libraries) with `WKIT_STAGE_DIR`/`WKIT_PACKAGE_*` set
 - [x] Packages build in Release unless `--build-type` says otherwise. `--set` passes `-o &:<package.set-option>=<set>` to Conan; sets other than the conanfile default are packaged as `<name>-<set>`
 
-### M5: workspace and extras
-- [ ] `wkit smoke <bin> [--runs N --interval S --timeout S]`: repeated launch stability test
-- [ ] `wkit doctor`: uv, conan, cmake, ninja, nightly toolchain, cargo-nextest, cargo-deb, makepkg, pinned tools resolvable
-- [ ] `wkit info`: host triple, OS/distro, project summary (`sysinfo` recipes)
-- [ ] Extra formatters/linters behind `[format.<name>]`: qmlformat (`.qmlformat.ini`), qmllint, black, stylua
-- [ ] MMS extension: `meta.lua` validation (uuid, dependency ranges), plugin version ⇔ conanfile
+### M5: workspace and extras ✅
+- [x] `wkit smoke [BIN] [--runs N --interval S --timeout S --expect-exit]`: repeated launch stability test
+  - A launch passes when it exits cleanly or is still alive at the timeout (then its process group gets SIGTERM, SIGKILL after 2s). `--expect-exit` fails survivors
+  - Output goes to `build/smoke/run-N.log` (`target/` for Rust-only projects); failed runs print their tail. Cargo binaries are built, then launched directly rather than through `cargo run`
+- [x] `wkit doctor`: uv, conan, cmake, ninja, nightly toolchain, cargo-nextest, cargo-deb, makepkg, pinned tools resolvable
+  - Probes run in parallel and are required/recommended/optional depending on the project; a missing required tool exits 1. Outside a project everything is optional
+- [x] `wkit info [--json]`: host triple, OS/distro, kernel, CPUs, and a project summary (version, languages, build system, bins, suites, formatters, planned checks, package formats)
+- [x] Extra formatters/linters behind `[format.<name>]`: qmlformat (`.qmlformat.ini`), qmllint, black, stylua
+  - `[format.qmlformat]`, `[format.black]`, `[format.stylua]` turn on by themselves when `.qmlformat.ini`, `[tool.black]` in `pyproject.toml` or `stylua.toml` exist. `qmllint` is a check stage (`[check.qmllint]`, opt-in)
+  - Unpinned Qt tools prefer Qt 6 (`$QT_HOST_BINS`, `/usr/lib/qt6/bin`, …) over a Qt 5 `qmlformat` on `PATH`
+- [x] MMS extension: `meta.lua` validation (uuid, dependency ranges), plugin version ⇔ conanfile
+  - `mms` check stage, on when the tree has exactly one `meta.lua` (or `check.mms.meta` names it). UUIDs resolve through `local` variables and `mms.Uuid.from_string`; `mms.VersionRange.parse` and `{ name, version }` ranges must parse and match some version; the plugin must not depend on itself
+  - The plugin version must equal `[version]`'s current version, else the conanfile's. `mms.app.version` is reported as a note
 
 ## Cross-cutting rules
 - Status goes to stderr in cargo style (`  Formatting`, `    Checking`, `     Bumping`, `    Finished`). Data goes to stdout. Progress bars are hidden when stderr is not a TTY or with `-q`

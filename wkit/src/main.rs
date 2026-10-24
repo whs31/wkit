@@ -2,6 +2,7 @@ mod cli;
 mod commands;
 mod context;
 mod failure;
+mod launcher;
 
 use self::{cli::Cli, failure::Failure};
 

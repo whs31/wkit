@@ -39,6 +39,17 @@ extensions = ["c", "cc", "cpp", "cxx", "h", "hh", "hpp", "hxx", "cu"]
 include = []                              # gitignore-style globs; empty = whole tree
 exclude = ["/build/", "/vendor/", "/packaging/", "/cmake-build-*/"]
 
+[format.qmlformat]
+enabled = true                            # default: .qmlformat.ini exists
+extensions = ["qml"]
+args = ["--normalize"]
+
+[format.black]
+include = ["/scripts/"]                   # default enabled: pyproject.toml has [tool.black]
+
+[format.stylua]
+enabled = false                           # default: stylua.toml or .stylua.toml exists
+
 [check]
 format = true                             # run formatters in check mode
 versions = true                           # every version file must agree
@@ -60,6 +71,15 @@ dirs = ["src", "tests"]                   # translation units and headers to ana
 strip-flags = ["-mno-direct-extern-access"]
 warnings-as-errors = true
 cache = true
+
+[check.qmllint]
+enabled = true                            # default: false
+include = ["/src/qml/"]
+args = ["-I", "build/Release"]
+
+[check.mms]
+enabled = true                            # default: exactly one meta.lua in the tree
+meta = "src/plugin/meta.lua"
 
 [[check.custom]]
 name = "plugin-meta"

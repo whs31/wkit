@@ -300,3 +300,166 @@ fn packaging_without_a_maintainer_explains_the_fix() {
     "{stderr}"
   );
 }
+
+fn example(name: &str) -> std::path::PathBuf {
+  examples().into_iter().find(|e| e.ends_with(name)).unwrap()
+}
+
+#[cfg(unix)]
+#[test]
+fn smoke_reports_crashing_launches_with_their_output() {
+  if which::which("cmake").is_err() {
+    return;
+  }
+  let dir = tempfile::tempdir().unwrap();
+  copy(&example("cmake-c"), dir.path());
+  let (_, stderr) = succeed(dir.path(), &["smoke", "--runs", "2"]);
+  assert!(
+    stderr.contains("Launching `build/default/crc8sum` 2 times"),
+    "{stderr}"
+  );
+  assert_eq!(stderr.matches("exited cleanly").count(), 2, "{stderr}");
+
+  let script = dir.path().join("flaky.sh");
+  std::fs::write(
+    &script,
+    "#!/bin/sh\nn=$(cat count 2>/dev/null || echo 0); n=$((n+1)); echo $n > count\necho \"run $n\"\n[ $n -eq 2 ] && { echo boom >&2; exit 3; }\nexec sleep 30\n",
+  )
+  .unwrap();
+  std::fs::set_permissions(&script, std::os::unix::fs::PermissionsExt::from_mode(0o755)).unwrap();
+  let manifest = dir.path().join("wkit.toml");
+  let toml = std::fs::read_to_string(&manifest).unwrap();
+  std::fs::write(
+    &manifest,
+    format!("{toml}\n[[bin]]\nname = \"flaky\"\npath = \"flaky.sh\"\n"),
+  )
+  .unwrap();
+
+  let output = wkit(
+    dir.path(),
+    &["smoke", "flaky", "--runs", "3", "--timeout", "0.3"],
+  );
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  assert_eq!(output.status.code(), Some(1), "{stderr}");
+  assert_eq!(stderr.matches("still running after").count(), 2, "{stderr}");
+  assert!(stderr.contains("FAILED run 2  exit status: 3"), "{stderr}");
+  assert!(stderr.contains("  run 2\n  boom\n"), "{stderr}");
+  assert!(
+    stderr.contains("1 of 3 runs failed; logs in `build/smoke`"),
+    "{stderr}"
+  );
+  assert_eq!(
+    std::fs::read_to_string(dir.path().join("build/smoke/run-3.log")).unwrap(),
+    "run 3\n"
+  );
+}
+
+#[test]
+fn mms_check_validates_plugin_metadata() {
+  let dir = tempfile::tempdir().unwrap();
+  copy(&example("conan-app"), dir.path());
+  let (_, stderr) = succeed(dir.path(), &["check", "--only", "mms"]);
+  assert!(
+    stderr.contains("ok mms  v1.8.0-rc.2, 1 dependency"),
+    "{stderr}"
+  );
+
+  let meta = dir.path().join("src/plugin/assets/meta.lua");
+  let text = std::fs::read_to_string(&meta)
+    .unwrap()
+    .replace("1.8.0-rc.2", "1.9.0")
+    .replace(">=3.12.0", ">=4 <3");
+  std::fs::write(&meta, text).unwrap();
+  let output = wkit(dir.path(), &["check", "--only", "mms"]);
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  assert_eq!(output.status.code(), Some(1), "{stderr}");
+  assert!(
+    stderr.contains("plugin version 1.9.0 differs from the project version 1.8.0-rc.2"),
+    "{stderr}"
+  );
+  assert!(
+    stderr.contains("meta.lua:6: dependency `mms`: range `>=4 <3` matches no version"),
+    "{stderr}"
+  );
+}
+
+#[test]
+fn qml_sources_are_formatted_and_linted() {
+  let dirs: Vec<std::path::PathBuf> = wkit_manifest::tools::Tools::QT_BIN_DIRS
+    .iter()
+    .map(Into::into)
+    .collect();
+  if wkit_manifest::tools::Tools::qt_binary("qmlformat", &dirs).is_none() {
+    return;
+  }
+  let dir = tempfile::tempdir().unwrap();
+  copy(&example("conan-app"), dir.path());
+  succeed(dir.path(), &["fmt", "--check"]);
+  let (_, stderr) = succeed(dir.path(), &["check", "--only", "qmllint"]);
+  assert!(stderr.contains("ok qmllint"), "{stderr}");
+
+  let qml = dir.path().join("src/plugin/qml/Status.qml");
+  let text = std::fs::read_to_string(&qml).unwrap();
+  std::fs::write(&qml, text.replace("    id: root", "  id:   root")).unwrap();
+  let output = wkit(dir.path(), &["fmt", "--check"]);
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  assert!(!output.status.success());
+  assert!(
+    stderr.contains("1 file needs formatting") && stderr.contains("src/plugin/qml/Status.qml"),
+    "{stderr}"
+  );
+  succeed(dir.path(), &["fmt"]);
+  assert_eq!(std::fs::read_to_string(&qml).unwrap(), text);
+
+  std::fs::write(&qml, text.replace("root.connected", "root.missing")).unwrap();
+  let output = wkit(dir.path(), &["check", "--only", "qmllint"]);
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  assert!(!output.status.success());
+  assert!(
+    stderr.contains("FAILED qmllint") && stderr.contains("missing-property"),
+    "{stderr}"
+  );
+}
+
+#[test]
+fn info_and_doctor_describe_the_project() {
+  let example = example("cmake-c");
+  let (stdout, _) = succeed(&example, &["info"]);
+  for needle in [
+    "host:",
+    "project:    crc8",
+    "version:    0.3.0",
+    "build:      cmake",
+    "bins:       crc8sum",
+  ] {
+    assert!(stdout.contains(needle), "missing `{needle}` in {stdout}");
+  }
+  let (stdout, _) = succeed(&example, &["info", "--json"]);
+  let info: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+  assert_eq!(info["project"]["name"], "crc8");
+  assert_eq!(info["project"]["tests"][0], "ctest");
+  assert!(
+    info["host"]["triple"]
+      .as_str()
+      .unwrap()
+      .starts_with(std::env::consts::ARCH)
+  );
+
+  let dir = tempfile::tempdir().unwrap();
+  copy(&example, dir.path());
+  let manifest = dir.path().join("wkit.toml");
+  let toml = std::fs::read_to_string(&manifest).unwrap();
+  std::fs::write(
+    &manifest,
+    format!(
+      "{toml}\n[tools]\nstylua = {{ path = \"tools/stylua\" }}\n\n[format.stylua]\nenabled = true\n"
+    ),
+  )
+  .unwrap();
+  let output = wkit(dir.path(), &["doctor"]);
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  assert_eq!(output.status.code(), Some(1), "{stderr}");
+  assert!(stderr.contains("MISSING stylua"), "{stderr}");
+  assert!(stderr.contains("Lua formatting (required)"), "{stderr}");
+  assert!(stderr.contains("1 required tool is missing"), "{stderr}");
+}

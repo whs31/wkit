@@ -6,23 +6,27 @@ mod clean;
 mod conan;
 mod configure;
 mod create;
+mod doctor;
 mod external;
 mod fmt;
 mod graph;
+mod info;
 mod init;
 mod install;
 mod package;
 mod run;
 mod run_script;
 mod self_update;
+mod smoke;
 mod test;
 mod uninstall;
 
 use self::{
   build::BuildArgs, bump::BumpArgs, check::CheckArgs, clean::CleanArgs, conan::ConanArgs,
-  configure::ConfigureArgs, create::CreateArgs, external::External, fmt::FmtArgs, graph::GraphArgs,
-  init::InitArgs, install::InstallArgs, package::PackageArgs, run::RunArgs,
-  run_script::RunScriptArgs, self_update::SelfUpdateArgs, test::TestArgs, uninstall::UninstallArgs,
+  configure::ConfigureArgs, create::CreateArgs, doctor::DoctorArgs, external::External,
+  fmt::FmtArgs, graph::GraphArgs, info::InfoArgs, init::InitArgs, install::InstallArgs,
+  package::PackageArgs, run::RunArgs, run_script::RunScriptArgs, self_update::SelfUpdateArgs,
+  smoke::SmokeArgs, test::TestArgs, uninstall::UninstallArgs,
 };
 use crate::context::Context;
 
@@ -31,7 +35,7 @@ pub enum Command {
   /// Show, bump or assign the project version in every version file
   Bump(BumpArgs),
 
-  /// Format Rust and C/C++ sources
+  /// Format Rust, C/C++, QML, Python and Lua sources
   #[command(alias = "format")]
   Fmt(FmtArgs),
 
@@ -49,6 +53,9 @@ pub enum Command {
 
   /// Run the project's test suites
   Test(TestArgs),
+
+  /// Launch a `[[bin]]` repeatedly to catch crashes on startup
+  Smoke(SmokeArgs),
 
   /// Remove build outputs and generated files
   Clean(CleanArgs),
@@ -77,6 +84,12 @@ pub enum Command {
   #[command(visible_alias = "x")]
   RunScript(RunScriptArgs),
 
+  /// Check that the tools this project needs are installed
+  Doctor(DoctorArgs),
+
+  /// Show the host and a summary of the project
+  Info(InfoArgs),
+
   /// Update wkit from crates.io
   SelfUpdate(SelfUpdateArgs),
 
@@ -97,6 +110,7 @@ impl Command {
       Self::Run(args) => args.run(ctx),
       Self::Check(args) => args.run(ctx),
       Self::Test(args) => args.run(ctx),
+      Self::Smoke(args) => args.run(ctx),
       Self::Clean(args) => args.run(ctx),
       Self::Create(args) => args.run(ctx),
       Self::Graph(args) => args.run(ctx),
@@ -105,6 +119,8 @@ impl Command {
       Self::Install(args) => args.run(ctx),
       Self::Uninstall(args) => args.run(ctx),
       Self::RunScript(args) => args.run(ctx),
+      Self::Doctor(_) => DoctorArgs::run(ctx),
+      Self::Info(args) => args.run(ctx),
       Self::SelfUpdate(args) => args.run(ctx),
       Self::Init(args) => args.run(ctx),
       Self::External(args) => External::new(args).run(ctx),

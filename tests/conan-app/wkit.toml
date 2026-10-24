@@ -33,3 +33,6 @@ extra = ["run/out"]
 
 [scripts]
 graph = { run = "conan graph info . --format=html > graph.html", description = "Render the dependency graph" }
+
+[check.qmllint]
+enabled = true

@@ -1,7 +1,12 @@
 mod clang_tidy_check;
 mod clippy_check;
+mod mms_check;
+mod qmllint_check;
 
-pub use self::{clang_tidy_check::ClangTidyCheck, clippy_check::ClippyCheck};
+pub use self::{
+  clang_tidy_check::ClangTidyCheck, clippy_check::ClippyCheck, mms_check::MmsCheck,
+  qmllint_check::QmllintCheck,
+};
 use crate::CustomCheck;
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
@@ -15,6 +20,8 @@ pub struct CheckSection {
   pub pre_commit: bool,
   pub clippy: ClippyCheck,
   pub clang_tidy: ClangTidyCheck,
+  pub qmllint: QmllintCheck,
+  pub mms: MmsCheck,
   pub custom: Vec<CustomCheck>,
 }
 
@@ -27,6 +34,8 @@ impl CheckSection {
     "secrets",
     "whitespace",
     "pre-commit",
+    "qmllint",
+    "mms",
   ];
 }
 
@@ -40,6 +49,8 @@ impl Default for CheckSection {
       pre_commit: true,
       clippy: ClippyCheck::default(),
       clang_tidy: ClangTidyCheck::default(),
+      qmllint: QmllintCheck::default(),
+      mms: MmsCheck::default(),
       custom: Vec::new(),
     }
   }

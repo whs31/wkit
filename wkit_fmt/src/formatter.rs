@@ -1,12 +1,13 @@
 use wkit_core::{Result, Shell};
 use wkit_manifest::Project;
 
-use crate::{ClangFormat, Mode, Rustfmt};
+use crate::{ClangFormat, ExtraFormatter, ExtraKind, Mode, Rustfmt};
 
 #[derive(Debug, Clone)]
 pub struct Formatter {
   pub rustfmt: Option<Rustfmt>,
   pub clang_format: Option<ClangFormat>,
+  pub extra: Vec<ExtraFormatter>,
 }
 
 impl Formatter {
@@ -14,11 +15,15 @@ impl Formatter {
     Ok(Self {
       rustfmt: Rustfmt::new(project)?,
       clang_format: ClangFormat::new(project),
+      extra: ExtraKind::ALL
+        .into_iter()
+        .filter_map(|kind| ExtraFormatter::new(project, kind))
+        .collect(),
     })
   }
 
   pub fn is_empty(&self) -> bool {
-    self.rustfmt.is_none() && self.clang_format.is_none()
+    self.rustfmt.is_none() && self.clang_format.is_none() && self.extra.is_empty()
   }
 
   pub fn run(&self, shell: &mut Shell, mode: Mode, jobs: usize) -> Result<Vec<std::path::PathBuf>> {
@@ -28,6 +33,9 @@ impl Formatter {
     }
     if let Some(clang_format) = &self.clang_format {
       files.extend(clang_format.run(shell, mode, jobs)?);
+    }
+    for extra in &self.extra {
+      files.extend(extra.run(shell, mode, jobs)?);
     }
     Ok(files)
   }

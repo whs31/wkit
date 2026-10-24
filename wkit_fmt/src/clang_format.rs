@@ -1,7 +1,7 @@
 use wkit_core::{Error, ProcessBuilder, Result, Shell, fs::SourceSet, tool::Tool};
 use wkit_manifest::Project;
 
-use crate::Mode;
+use crate::{Batches, Mode, Snapshot};
 
 #[derive(Debug, Clone)]
 pub struct ClangFormat {
@@ -66,55 +66,26 @@ impl ClangFormat {
     self.tool.command().arg("--version").output()?;
     shell.status(
       mode.label(),
-      format_args!("{} C/C++ files with {}", sources.len(), self.tool),
+      format_args!(
+        "{} C/C++ file{} with {}",
+        sources.len(),
+        if sources.len() == 1 { "" } else { "s" },
+        self.tool
+      ),
     )?;
     let progress = shell.progress(mode.label(), sources.len() as u64);
     let before = match mode {
-      Mode::Write => Some(self.digests(&sources)?),
+      Mode::Write => Some(Snapshot::take(&self.root, &sources)?),
       Mode::Check => None,
     };
-    let batches: Vec<_> = sources.chunks(Self::BATCH).collect();
-    let next = std::sync::atomic::AtomicUsize::new(0);
-    let flagged = std::sync::Mutex::new(Vec::new());
-    let failure = std::sync::Mutex::new(None);
-    std::thread::scope(|scope| {
-      for _ in 0..jobs.clamp(1, batches.len()) {
-        scope.spawn(|| {
-          while failure.lock().expect("not poisoned").is_none() {
-            let index = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-            let Some(batch) = batches.get(index) else {
-              break;
-            };
-            match self.run_batch(mode, batch) {
-              Ok(found) => flagged.lock().expect("not poisoned").extend(found),
-              Err(e) => {
-                failure.lock().expect("not poisoned").get_or_insert(e);
-              }
-            }
-            progress.inc(batch.len() as u64);
-          }
-        });
-      }
-    });
+    let flagged =
+      Batches::new(Self::BATCH, jobs).run(&sources, &progress, |batch| self.run_batch(mode, batch));
     progress.finish_and_clear();
-    if let Some(e) = failure.into_inner().expect("not poisoned") {
-      return Err(e);
+    let flagged = flagged?;
+    match before {
+      Some(before) => before.changed(&self.root, &sources),
+      None => Ok(flagged),
     }
-    let mut files = match before {
-      Some(before) => {
-        let after = self.digests(&sources)?;
-        sources
-          .into_iter()
-          .zip(before.into_iter().zip(after))
-          .filter(|(_, (b, a))| b != a)
-          .map(|(path, _)| path)
-          .collect()
-      }
-      None => flagged.into_inner().expect("not poisoned"),
-    };
-    files.sort();
-    files.dedup();
-    Ok(files)
   }
 
   fn run_batch(&self, mode: Mode, batch: &[std::path::PathBuf]) -> Result<Vec<std::path::PathBuf>> {
@@ -145,20 +116,6 @@ impl ClangFormat {
     });
     RE.captures_iter(stderr)
       .map(|c| std::path::PathBuf::from(&c["path"]))
-      .collect()
-  }
-
-  fn digests(&self, sources: &[std::path::PathBuf]) -> Result<Vec<u64>> {
-    sources
-      .iter()
-      .map(|path| {
-        let path = self.root.join(path);
-        let bytes = std::fs::read(&path).map_err(|source| Error::Read { path, source })?;
-        Ok(std::hash::BuildHasher::hash_one(
-          &std::hash::BuildHasherDefault::<std::hash::DefaultHasher>::default(),
-          bytes,
-        ))
-      })
       .collect()
   }
 }

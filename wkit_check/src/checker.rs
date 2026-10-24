@@ -3,8 +3,8 @@ use wkit_fmt::Formatter;
 use wkit_manifest::Project;
 
 use crate::{
-  Check, CheckOptions, ClangTidy, Clippy, Custom, Error, FormatCheck, Outcome, PreCommitPins,
-  Result, Secrets, StageReport, VersionsCheck, Whitespace,
+  Check, CheckOptions, ClangTidy, Clippy, Custom, Error, FormatCheck, Mms, Outcome, PreCommitPins,
+  Qmllint, Result, Secrets, StageReport, VersionsCheck, Whitespace,
 };
 
 #[derive(Debug)]
@@ -59,6 +59,18 @@ impl Checker {
         m.check
           .pre_commit
           .then(|| Box::new(PreCommitPins::new(root, m.tools.clone())) as Box<dyn Check>),
+      ),
+      (
+        "qmllint".into(),
+        m.check.qmllint.enabled.then(|| {
+          let tool = project.tool(Qmllint::TOOL);
+          Box::new(Qmllint::new(root, tool, m.check.qmllint.clone())) as Box<dyn Check>
+        }),
+      ),
+      (
+        "mms".into(),
+        Mms::plan(root, &m.check.mms, m.version.as_ref())?
+          .map(|mms| Box::new(mms) as Box<dyn Check>),
       ),
     ];
     for custom in &m.check.custom {
