@@ -47,8 +47,8 @@ impl PlannedSuite {
     Ok(planned)
   }
 
-  pub fn inferred(ctx: &SuiteContext<'_>) -> Vec<TestSuite> {
-    let manifest = &ctx.project.manifest;
+  pub fn inferred(project: &wkit_manifest::Project) -> Vec<TestSuite> {
+    let manifest = &project.manifest;
     let mut suites = Vec::new();
     if manifest.has(wkit_core::Language::Rust) {
       let runner = if which::which("cargo-nextest").is_ok() {

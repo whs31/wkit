@@ -41,6 +41,11 @@ impl Failure {
           })
           .or_else(|| {
             cause
+              .downcast_ref::<wkit_build::Error>()
+              .map(wkit_build::Error::exit_code)
+          })
+          .or_else(|| {
+            cause
               .downcast_ref::<wkit_check::Error>()
               .map(wkit_check::Error::exit_code)
           })

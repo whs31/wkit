@@ -44,7 +44,7 @@ impl PlannedSuite {
     if let Some(profile) = profile {
       process = process.args(["--profile", profile]);
     }
-    if ctx.options.release {
+    if ctx.options.build_type.is_optimized() {
       process = process.arg("--release");
     }
     process = process.args(&suite.args).args(&ctx.options.extra);

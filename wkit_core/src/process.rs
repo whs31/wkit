@@ -128,6 +128,31 @@ impl ProcessBuilder {
       .map_err(|e| self.spawn_error(e))
   }
 
+  pub fn stream(&self, mut on_line: impl FnMut(&str)) -> Result<std::process::ExitStatus> {
+    let (reader, writer) = std::io::pipe().map_err(|e| self.spawn_error(e))?;
+    let mut command = self.command();
+    command
+      .stdin(std::process::Stdio::null())
+      .stdout(writer.try_clone().map_err(|e| self.spawn_error(e))?)
+      .stderr(writer);
+    let mut child = command.spawn().map_err(|e| self.spawn_error(e))?;
+    drop(command);
+    let mut reader = std::io::BufReader::new(reader);
+    let mut buffer = Vec::new();
+    loop {
+      buffer.clear();
+      let read = std::io::BufRead::read_until(&mut reader, b'\n', &mut buffer)
+        .map_err(|e| self.spawn_error(e))?;
+      if read == 0 {
+        break;
+      }
+      let line = String::from_utf8_lossy(&buffer);
+      let line = line.trim_end_matches(['\n', '\r']);
+      on_line(line.rsplit('\r').next().unwrap_or(line));
+    }
+    child.wait().map_err(|e| self.spawn_error(e))
+  }
+
   fn check(&self, status: std::process::ExitStatus, stderr: String) -> Result<()> {
     if status.success() {
       Ok(())
@@ -168,6 +193,17 @@ impl std::fmt::Display for ProcessBuilder {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[cfg(unix)]
+  #[test]
+  fn stream_merges_stdout_and_stderr_in_order() {
+    let mut lines = Vec::new();
+    let status = ProcessBuilder::shell("echo out; echo err >&2; printf 'a\\rb\\n'; exit 3")
+      .stream(|line| lines.push(line.to_owned()))
+      .unwrap();
+    assert_eq!(status.code(), Some(3));
+    assert_eq!(lines, ["out", "err", "b"]);
+  }
 
   #[test]
   fn display_is_a_pasteable_command_line() {

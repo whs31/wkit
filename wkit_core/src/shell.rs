@@ -150,21 +150,36 @@ impl Shell {
     self.status("Finished", format_args!("{what} in {}", Elapsed(elapsed)))
   }
 
+  pub fn passthrough(&mut self, line: impl std::fmt::Display) -> std::io::Result<()> {
+    self.write_err(&format!("{line}\n"))
+  }
+
   pub fn progress(&mut self, status: &str, len: u64) -> indicatif::ProgressBar {
+    self.bar(status, Some(len), "[{bar:27}] {pos}/{len}{wide_msg}")
+  }
+
+  pub fn transient(&mut self, status: &str) -> indicatif::ProgressBar {
+    self.bar(status, None, "{wide_msg}")
+  }
+
+  fn bar(&mut self, status: &str, len: Option<u64>, body: &str) -> indicatif::ProgressBar {
+    if let Some(previous) = self.progress.take() {
+      previous.finish_and_clear();
+    }
     let target = if self.verbosity == Verbosity::Quiet || !self.is_err_tty() {
       indicatif::ProgressDrawTarget::hidden()
     } else {
       indicatif::ProgressDrawTarget::stderr()
     };
-    let template = if self.err_supports_color() {
-      "{prefix:>12.cyan.bold} [{bar:27}] {pos}/{len}{wide_msg}"
+    let prefix = if self.err_supports_color() {
+      "{prefix:>12.cyan.bold}"
     } else {
-      "{prefix:>12} [{bar:27}] {pos}/{len}{wide_msg}"
+      "{prefix:>12}"
     };
-    let style = indicatif::ProgressStyle::with_template(template)
+    let style = indicatif::ProgressStyle::with_template(&format!("{prefix} {body}"))
       .expect("progress template is valid")
       .progress_chars("=> ");
-    let bar = indicatif::ProgressBar::with_draw_target(Some(len), target)
+    let bar = indicatif::ProgressBar::with_draw_target(len, target)
       .with_style(style)
       .with_prefix(status.to_owned());
     self.progress = Some(bar.clone());

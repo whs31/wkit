@@ -161,3 +161,24 @@ fn test_rejects_unknown_suites_with_a_hint() {
     "{stderr}"
   );
 }
+
+#[test]
+fn plain_cmake_example_builds_before_testing() {
+  if which::which("cmake").is_err() {
+    return;
+  }
+  let example = examples()
+    .into_iter()
+    .find(|e| e.ends_with("cmake-c"))
+    .unwrap();
+  let dir = tempfile::tempdir().unwrap();
+  copy(&example, dir.path());
+  let (_, stderr) = succeed(dir.path(), &["test"]);
+  assert!(stderr.contains("Compiling crc8 v0.3.0 (Debug)"), "{stderr}");
+  assert!(stderr.contains("Finished `Debug` build"), "{stderr}");
+  assert!(stderr.contains("ok ctest"), "{stderr}");
+
+  let (_, stderr) = succeed(dir.path(), &["build", "--build-type", "release"]);
+  assert!(stderr.contains("`Release` build"), "{stderr}");
+  assert!(!stderr.contains("Building"), "{stderr}");
+}

@@ -1,6 +1,8 @@
+use wkit_build::{BuildOptions, Builder};
 use wkit_core::shell::ColorChoice;
 use wkit_test::{TestOptions, Tester};
 
+use super::build_selection::BuildSelection;
 use crate::{context::Context, failure::Failure};
 
 #[derive(Debug, clap::Args)]
@@ -14,9 +16,8 @@ pub struct TestArgs {
   #[arg(long = "suite", value_name = "NAME")]
   suites: Vec<String>,
 
-  /// Test the release build
-  #[arg(short, long)]
-  release: bool,
+  #[command(flatten)]
+  selection: BuildSelection,
 
   /// Arguments passed to every test runner
   #[arg(last = true, value_name = "ARGS")]
@@ -30,10 +31,27 @@ impl TestArgs {
       Some(dir) => ctx.cwd.join(dir),
       None => project.join(project.manifest.test.junit_dir()),
     });
+    let suites = Tester::select(&project, &self.suites)?;
+    let build_options = BuildOptions {
+      tests: true,
+      ..self.selection.options()
+    };
+    let builder = Builder::new(&project, &build_options);
+    let built = if suites.iter().any(|s| s.runner.needs_build_dir()) {
+      builder.run_native(ctx.shell)?
+    } else {
+      None
+    };
     let options = TestOptions {
       junit,
       suites: self.suites,
-      release: self.release,
+      build_type: match &built {
+        Some(outcome) => outcome.build_type,
+        None => builder.build_type()?,
+      },
+      build_dir: built
+        .as_ref()
+        .and_then(|outcome| outcome.build_dir().map(ToOwned::to_owned)),
       extra: self.args,
       color: match ctx.shell.color_choice() {
         ColorChoice::Always => true,

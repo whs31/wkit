@@ -8,13 +8,6 @@ default-run = "groundlink"
 source = "conanfile.py"
 files = ["conanfile.py", "CMakeLists.txt", "src/plugin/assets/meta.lua"]
 
-[build]
-build-type = "RelWithDebInfo"
-
-[build.conan]
-options = { with_compression = true }
-test-option = "test"
-
 [[bin]]
 name = "groundlink"
 path = "build/{build-type}/groundlink{exe}"
@@ -27,7 +20,6 @@ run = ["python3", "scripts/check_meta.py"]
 
 [[test.suite]]
 runner = "ctest"
-build-dir = "build/{build-type}"
 
 [clean]
 extra = ["run/out"]

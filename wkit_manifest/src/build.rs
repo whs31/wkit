@@ -13,7 +13,6 @@ pub use self::{
 #[serde(default, rename_all = "kebab-case")]
 pub struct BuildSection {
   pub system: Option<wkit_core::detect::BuildSystem>,
-  pub build_type: BuildType,
   pub conan: ConanBuild,
   pub cargo: CargoBuild,
 }

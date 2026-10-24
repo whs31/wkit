@@ -45,10 +45,7 @@ impl CompileDatabase {
       .max()
       .map(|(_, path)| path)
       .ok_or_else(|| {
-        Error::Message(
-          "no compile_commands.json found in build/*/; configure the project first or pass BUILD_DIR"
-            .to_owned(),
-        )
+        Error::Message("no compile_commands.json found in build/*/; pass BUILD_DIR".to_owned())
       })
   }
 

@@ -1235,11 +1235,29 @@ dependencies = [
  "toml",
  "ureq",
  "which",
+ "wkit_build",
  "wkit_check",
  "wkit_core",
  "wkit_fmt",
  "wkit_manifest",
  "wkit_test",
+ "wkit_version",
+]
+
+[[package]]
+name = "wkit_build"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "indicatif",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "which",
+ "wkit_core",
+ "wkit_manifest",
  "wkit_version",
 ]
 

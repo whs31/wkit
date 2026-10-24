@@ -10,12 +10,8 @@ files = ["conanfile.py", "CMakeLists.txt", "Cargo.toml"]
 [build]
 system = "conan"
 
-[build.conan]
-test-option = "test"
-
 [[test.suite]]
 runner = "cargo"
 
 [[test.suite]]
 runner = "ctest"
-build-dir = "build/{build-type}"

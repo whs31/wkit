@@ -1,3 +1,5 @@
+mod build;
+mod build_selection;
 mod bump;
 mod check;
 mod clean;
@@ -9,8 +11,9 @@ mod self_update;
 mod test;
 
 use self::{
-  bump::BumpArgs, check::CheckArgs, clean::CleanArgs, external::External, fmt::FmtArgs,
-  init::InitArgs, run_script::RunScriptArgs, self_update::SelfUpdateArgs, test::TestArgs,
+  build::BuildArgs, bump::BumpArgs, check::CheckArgs, clean::CleanArgs, external::External,
+  fmt::FmtArgs, init::InitArgs, run_script::RunScriptArgs, self_update::SelfUpdateArgs,
+  test::TestArgs,
 };
 use crate::context::Context;
 
@@ -22,6 +25,9 @@ pub enum Command {
   /// Format Rust and C/C++ sources
   #[command(alias = "format")]
   Fmt(FmtArgs),
+
+  /// Build the project and its dependencies
+  Build(BuildArgs),
 
   /// Run format, version, lint and custom checks
   Check(CheckArgs),
@@ -51,6 +57,7 @@ impl Command {
     match self {
       Self::Bump(args) => args.run(ctx),
       Self::Fmt(args) => args.run(ctx),
+      Self::Build(args) => args.run(ctx),
       Self::Check(args) => args.run(ctx),
       Self::Test(args) => args.run(ctx),
       Self::Clean(args) => args.run(ctx),

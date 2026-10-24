@@ -9,6 +9,10 @@ pub enum TestRunner {
 }
 
 impl TestRunner {
+  pub fn needs_build_dir(self) -> bool {
+    matches!(self, Self::Ctest | Self::Catch2)
+  }
+
   pub fn serves(self, language: wkit_core::Language) -> bool {
     match self {
       Self::Cargo | Self::Nextest => language == wkit_core::Language::Rust,
@@ -29,5 +33,6 @@ mod tests {
     assert!(!TestRunner::Nextest.serves(Language::Cpp));
     assert!(TestRunner::Catch2.serves(Language::C));
     assert_eq!(TestRunner::Catch2.to_string(), "catch2");
+    assert!(TestRunner::Ctest.needs_build_dir() && !TestRunner::Cargo.needs_build_dir());
   }
 }

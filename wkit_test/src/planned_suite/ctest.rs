@@ -1,17 +1,17 @@
 use wkit_manifest::{TestRunner, TestSuite};
 
 use super::PlannedSuite;
-use crate::{BuildDir, Result, SuiteContext};
+use crate::{Result, SuiteContext};
 
 impl PlannedSuite {
   pub(super) fn ctest(ctx: &SuiteContext<'_>, suite: &TestSuite, name: String) -> Result<Self> {
-    let dir = BuildDir::resolve(ctx.project, suite.build_dir.as_deref(), ctx.build_type)?;
+    let dir = ctx.build_dir(suite)?;
     let mut process = wkit_core::ProcessBuilder::new("ctest")
       .cwd(ctx.root())
       .arg("--test-dir")
       .arg(&dir)
       .args(["--output-on-failure", "--build-config"])
-      .arg(ctx.build_type.to_string());
+      .arg(ctx.options.build_type.to_string());
     if let Some(filter) = &suite.filter {
       process = process.args(["-R", filter]);
     }

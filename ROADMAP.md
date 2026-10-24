@@ -41,7 +41,7 @@ On Windows, 60+ of these files exist only as `.ps1` twins of a `.sh` script. Bui
 | `wkit_fmt`      | ✅     | rustfmt (channel auto-detected), clang-format batches in parallel, changed-file report, `--check`                                                                                                                                                                              |
 | `wkit_check`    | M2     | clippy, clang-tidy (compile db discovery, gcc-only flag stripping, parallel, result cache), custom checks, summary table                                                                                                                                                       |
 | `wkit_test`     | M2     | cargo/nextest/ctest/catch2 runners, JUnit aggregation                                                                                                                                                                                                                          |
-| `wkit_build`    | M3     | conan/cargo/cmake drivers, configure + preset resolution, `[[bin]]` resolution                                                                                                                                                                                                 |
+| `wkit_build`    | M3     | conan (single and workspace), plain CMake (presets or `build/<type>`) and cargo drivers, build type from the Conan profile, conan/CMake/ninja output translated to cargo-style lines and a progress bar                                                                        |
 | `wkit_package`  | M4     | arch/deb/windows packaging, install/uninstall                                                                                                                                                                                                                                  |
 | `wkit_ws`       | M5     | multi-repo workspace management (`workspace.toml`/`workspace.lock` compatible)                                                                                                                                                                                                 |
 | `wkit`          | ✅ M1  | the binary: clap CLI, command dispatch, `[scripts]`, `wkit-<name>` external subcommands, `self-update`, `init`, `clean`                                                                                                                                                        |
@@ -70,7 +70,7 @@ Enough to delete `check.py`, `clang_tools.py`, `check_versions.py` and `test.sh`
 - [x] `wkit check [--only <stage>] [--skip <stage>] [-j N] [--no-cache] [-v] [BUILD_DIR]`. Stages: `format`, `versions`, `clippy`, `clang-tidy`, `secrets`, `whitespace`, `pre-commit`, then custom checks. A failed stage exits 1
 - [x] clang-tidy cache keyed by tool version, `.clang-tidy` digests, compile command and every included file (`-header-include-file`). Prune on run; skip files modified mid-run
 - [x] Built-in check kinds beyond custom commands: `secrets` (`github_pat_`, tokens), `whitespace` (`git diff --check`), `pre-commit` (pre-commit `rev` matches `[tools]`)
-- [x] `wkit test [--junit [DIR]] [--suite <name>] [-r|--release] [-- args]`. Runs already-built tests (building is M3) and merges every suite into `DIR/junit.xml`
+- [x] `wkit test [--junit [DIR]] [--suite <name>] [-r|--release] [--build-type T] [--profile P] [-- args]`. Builds C/C++ with tests first (incremental), then merges every suite into `DIR/junit.xml`
   - nextest: `--profile ci`; without a `junit.path` in `.config/nextest.toml`, wkit supplies one via `--tool-config-file`
   - catch2: `--reporter JUnit::out=<file> --reporter console::out=-::colour-mode=ansi`, `--order rand --rng-seed $CI_PIPELINE_IID`
   - ctest: `--output-on-failure --output-junit <file>`
@@ -80,7 +80,11 @@ Enough to delete `check.py`, `clang_tools.py`, `check_versions.py` and `test.sh`
 - [x] `QT_QPA_PLATFORM=offscreen` default for test env on headless CI (`$CI` set)
 
 ### M3: build, run, conan helpers
-- [ ] `wkit build [-r|--release|--build-type T] [-C|--configure] [-t|--tests] [--offline] [-j N] [-- extra]`, mirroring `build.sh` flags
+- [x] `wkit build [-r|--release|--build-type T] [--profile P] [-t|--tests] [--offline] [-j N] [-- extra]`
+  - The manifest never sets the build type: it comes from `--build-type`, then the Conan host profile (CMake presets for plain CMake), then Debug
+  - The manifest never sets Conan options: the conanfile defaults apply. `--tests` turns on the conanfile's test option (`test`, `tests`, `with_tests`, … or `build.conan.test-option`)
+  - Conan, CMake and ninja output becomes `Compiling`/`Configuring`/`Downloading` lines and a progress bar; compiler diagnostics pass through, `-v` shows the raw output, the full log goes to `build/wkit-build.log`
+  - `wkit check` builds first when clang-tidy has no compile database
 - [ ] `wkit run [--bin <name>] [-- args]` with `default-run`, `[[bin]]` path templates, env, cwd
 - [ ] `wkit configure`: `conan install` + resolve the Conan CMake preset (`CMakeUserPresets.json` includes, newest `conan-<type>`) + `cmake --preset`
 - [ ] `wkit create`: `conan create` / `conan workspace create`

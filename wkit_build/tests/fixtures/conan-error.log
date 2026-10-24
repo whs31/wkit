@@ -1,0 +1,121 @@
+
+======== Input profiles ========
+Profile host:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[options]
+&:test=True
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+Profile build:
+[settings]
+arch=x86_64
+build_type=Debug
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.libcxx=libstdc++11
+compiler.version=16
+os=Linux
+[conf]
+tools.build:cflags=['-pipe']
+tools.build:cxxflags=['-pipe']
+tools.build:exelinkflags=['-fuse-ld=mold']
+tools.build:sharedlinkflags=['-fuse-ld=mold']
+tools.build:skip_test=True
+tools.cmake.cmaketoolchain:extra_variables={'CMAKE_C_COMPILER_LAUNCHER': 'ccache', 'CMAKE_CXX_COMPILER_LAUNCHER': 'ccache'}
+tools.cmake.cmaketoolchain:generator=Ninja
+
+
+======== Computing dependency graph ========
+Graph root
+    conanfile.py (geodesy/2.4.1): /work/geodesy/conanfile.py
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391 - Cache
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c - Cache
+Test requirements
+    catch2/3.16.0#95f400ca2fba9f0c5ce5aea6e6fe0055 - Cache
+Build requirements
+    cmake/4.4.4#fec9c7048fae91e03c31e59977cd9c12 - Cache
+Resolved version ranges
+    cmake/[>=3.16]: cmake/4.4.4
+
+======== Computing necessary packages ========
+Requirements
+    fmt/12.1.0#6baf0fb8351783472b94ee6e36232391:44392ef7c9e5deaea596f41a1bddb9f0d6238cd1#760c345fcb9954479e1e0d337c077edf - Cache
+    spdlog/1.17.0#bcbaaf7147bda6ad24ffbd1ac3d7142c:f50aac3b9e5bf52c7da50601c4edd3c172e57fb4#464709beecdf219d53f094e2c9154947 - Cache
+Test requirements
+    catch2/3.16.0#95f400ca2fba9f0c5ce5aea6e6fe0055:5dbeb572a3e26b705ca3ef2e99125b9aba27d0a0#868bd87570d5e3a6fb53f2260a64a190 - Cache
+Build requirements
+Skipped binaries
+    cmake/4.4.4
+
+======== Installing packages ========
+fmt/12.1.0: Already installed! (1 of 3)
+catch2/3.16.0: Already installed! (2 of 3)
+spdlog/1.17.0: Already installed! (3 of 3)
+
+======== Finalizing install (deploy, generators) ========
+>>> Generate step for conanfile.py (geodesy/2.4.1)
+Generators folder: /work/geodesy/build/Debug/generators
+Calling generate() method in recipe
+CMakeDeps necessary find_package() and targets for your CMakeLists.txt
+    find_package(spdlog)
+    find_package(Catch2)
+    target_link_libraries(... spdlog::spdlog Catch2::Catch2WithMain)
+CMakeToolchain generated: conan_toolchain.cmake
+CMakeToolchain: Preset 'conan-debug' added to CMakePresets.json.
+    (cmake>=3.23) cmake --preset conan-debug
+    (cmake<3.23) cmake <path> -G Ninja
+                 -DCMAKE_TOOLCHAIN_FILE=<output_folder>/generators/conan_toolchain.cmake 
+                 -DBUILD_TESTING=ON -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_BUILD_TYPE=Debug
+CMakeToolchain generated: /work/geodesy/build/Debug/generators/CMakePresets.json
+CMakeToolchain generated: /work/geodesy/CMakeUserPresets.json
+Generating aggregated env files
+Generated aggregated env files: ['conanbuild.sh', 'conanrun.sh']
+
+======== Calling build() ========
+>>> Build step for conanfile.py (geodesy/2.4.1)
+conanfile.py (geodesy/2.4.1): Calling build()
+conanfile.py (geodesy/2.4.1): Running CMake.configure()
+conanfile.py (geodesy/2.4.1): RUN: cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="generators/conan_toolchain.cmake" -DCMAKE_INSTALL_PREFIX="/work/geodesy" -DBUILD_TESTING="ON" -DCMAKE_POLICY_DEFAULT_CMP0091="NEW" -DCMAKE_BUILD_TYPE="Debug" "/work/geodesy"
+-- Using Conan toolchain: /work/geodesy/build/Debug/generators/conan_toolchain.cmake
+-- Conan toolchain: Setting CMAKE_POSITION_INDEPENDENT_CODE=ON (options.fPIC)
+-- Conan toolchain: Defining architecture flag: -m64
+-- Conan toolchain: C++ Standard 23 with extensions ON
+-- Conan toolchain: Setting BUILD_SHARED_LIBS = OFF
+-- Warning: Standard CMAKE_CXX_STANDARD value defined in conan_toolchain.cmake to 23 has been modified to 20 by /work/geodesy/CMakeLists.txt
+-- Conan: Component target declared 'spdlog::spdlog'
+-- Conan: Component target declared 'fmt::fmt'
+-- Conan: Component target declared 'Catch2::Catch2'
+-- Conan: Component target declared 'Catch2::Catch2WithMain'
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /work/geodesy/build/Debug
+
+conanfile.py (geodesy/2.4.1): Running CMake.build()
+conanfile.py (geodesy/2.4.1): RUN: cmake --build "/work/geodesy/build/Debug" -- -j12
+[1/3] Building CXX object CMakeFiles/geodesy.dir/src/geodesy.cpp.o
+FAILED: [code=1] CMakeFiles/geodesy.dir/src/geodesy.cpp.o 
+ccache /usr/bin/c++ -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -I/work/geodesy/include -isystem /home/user/.conan2/p/spdlo4bc4123073396/p/include -isystem /home/user/.conan2/p/fmt9ec6b84c6290d/p/include -m64 -pipe -g -std=gnu++20 -fPIC -MD -MT CMakeFiles/geodesy.dir/src/geodesy.cpp.o -MF CMakeFiles/geodesy.dir/src/geodesy.cpp.o.d -o CMakeFiles/geodesy.dir/src/geodesy.cpp.o -c /work/geodesy/src/geodesy.cpp
+/work/geodesy/src/geodesy.cpp: In function ‘void broken()’:
+/work/geodesy/src/geodesy.cpp:42:17: error: ‘undefined_call’ was not declared in this scope
+   42 | void broken() { undefined_call(); }
+      |                 ^~~~~~~~~~~~~~
+ninja: build stopped: subcommand failed.
+
+ERROR: conanfile.py (geodesy/2.4.1): Error in build() method, line 51
+	cmake.build()
+	ConanException: Error 1 while executing

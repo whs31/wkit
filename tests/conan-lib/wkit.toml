@@ -19,18 +19,12 @@ dirs = ["include", "src", "tests"]
 
 [build]
 system = "conan"
-build-type = "Release"
-
-[build.conan]
-test-option = "test"
 
 [[test.suite]]
 name = "unit"
 runner = "catch2"
 binary = "tests/geodesy_tests"
-build-dir = "build/{build-type}"
 filter = "~[!benchmark]"
 
 [[test.suite]]
 runner = "ctest"
-build-dir = "build/{build-type}"

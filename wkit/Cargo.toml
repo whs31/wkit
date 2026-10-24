@@ -15,6 +15,7 @@ categories = ["command-line-utilities", "development-tools"]
 workspace = true
 
 [dependencies]
+wkit_build.workspace = true
 wkit_check.workspace = true
 wkit_core.workspace = true
 wkit_fmt.workspace = true

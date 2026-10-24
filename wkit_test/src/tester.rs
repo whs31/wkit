@@ -1,5 +1,5 @@
 use wkit_core::{Shell, shell::Elapsed};
-use wkit_manifest::{BuildType, Project, TestSuite};
+use wkit_manifest::{Project, TestSuite};
 
 use crate::{Error, JunitReport, PlannedSuite, Result, SuiteContext, SuiteReport, TestOptions};
 
@@ -18,36 +18,37 @@ impl Tester {
     let ctx = SuiteContext {
       project,
       options,
-      build_type: if options.release {
-        BuildType::Release
-      } else {
-        project.manifest.build.build_type
-      },
       ci_seed: ci_seed.as_deref().filter(|s| !s.is_empty()),
       headless: std::env::var_os("CI").is_some(),
     };
-    let declared = &project.manifest.test.suites;
-    let suites: Vec<TestSuite> = if declared.is_empty() {
-      PlannedSuite::inferred(&ctx)
-    } else {
-      declared.clone()
-    };
-    let known: Vec<_> = suites.iter().map(TestSuite::display_name).collect();
-    for name in &options.suites {
-      if !known.contains(name) {
-        return Err(Error::setup(
-          format!("unknown test suite `{name}`"),
-          Some(format!("expected one of: {}", known.join(", "))),
-        ));
-      }
-    }
-    let suites = suites
+    let suites = Self::select(project, &options.suites)?
       .iter()
-      .filter(|s| options.suites.is_empty() || options.suites.contains(&s.display_name()))
       .map(|s| PlannedSuite::plan(&ctx, s))
       .collect::<Result<_>>()?;
     let junit = options.junit.as_ref().map(|dir| project.join(dir));
     Ok(Self { suites, junit })
+  }
+
+  pub fn select(project: &Project, names: &[String]) -> Result<Vec<TestSuite>> {
+    let declared = &project.manifest.test.suites;
+    let suites = if declared.is_empty() {
+      PlannedSuite::inferred(project)
+    } else {
+      declared.clone()
+    };
+    let known: Vec<_> = suites.iter().map(TestSuite::display_name).collect();
+    if let Some(name) = names.iter().find(|n| !known.contains(n)) {
+      return Err(Error::setup(
+        format!("unknown test suite `{name}`"),
+        Some(format!("expected one of: {}", known.join(", "))),
+      ));
+    }
+    Ok(
+      suites
+        .into_iter()
+        .filter(|s| names.is_empty() || names.contains(&s.display_name()))
+        .collect(),
+    )
   }
 
   pub fn suites(&self) -> &[PlannedSuite] {
@@ -106,10 +107,9 @@ impl Tester {
 
 #[cfg(test)]
 mod tests {
-  use wkit_manifest::TestRunner;
+  use wkit_manifest::{BuildType, TestRunner};
 
   use super::*;
-  use crate::BuildDir;
 
   fn project(toml: &str) -> (tempfile::TempDir, Project) {
     let dir = tempfile::tempdir().unwrap();
@@ -132,15 +132,14 @@ mod tests {
     let (dir, project) = project("[project]\nlanguages = [\"cpp\"]\n");
     let missing = Tester::plan(&project, &TestOptions::default()).unwrap_err();
     assert!(
-      missing.to_string().contains("help: configure and build"),
+      missing.to_string().contains("no CMake build directory"),
       "{missing}"
     );
 
     let build = dir.path().join("build/Debug");
-    std::fs::create_dir_all(&build).unwrap();
-    std::fs::write(build.join(BuildDir::CTEST_FILE), "").unwrap();
     let options = TestOptions {
       junit: Some("build/junit".into()),
+      build_dir: Some(build.clone()),
       ..TestOptions::default()
     };
     let tester = Tester::plan(&project, &options).unwrap();
@@ -163,7 +162,7 @@ mod tests {
   #[test]
   fn catch2_suites_find_their_binary_and_write_junit() {
     let (dir, project) = project(
-      "[project]\nlanguages = [\"cpp\"]\n\n[build]\nbuild-type = \"release\"\n\n[[test.suite]]\nrunner = \"catch2\"\nbinary = \"unit\"\nfilter = \"[fast]\"\nbuild-dir = \"build/{build-type}\"\n\n[[test.suite]]\nrunner = \"ctest\"\nname = \"all\"\nbuild-dir = \"build/{build-type}\"\n",
+      "[project]\nlanguages = [\"cpp\"]\n\n[[test.suite]]\nrunner = \"catch2\"\nbinary = \"unit\"\nfilter = \"[fast]\"\nbuild-dir = \"build/{build-type}\"\n\n[[test.suite]]\nrunner = \"ctest\"\nname = \"all\"\nbuild-dir = \"build/{build-type}\"\n",
     );
     let bin = dir.path().join("build/Release/tests");
     std::fs::create_dir_all(&bin).unwrap();
@@ -172,6 +171,7 @@ mod tests {
     let options = TestOptions {
       junit: Some("out".into()),
       suites: vec!["unit".into()],
+      build_type: BuildType::Release,
       extra: vec!["--durations".into(), "yes".into()],
       ..TestOptions::default()
     };
@@ -214,7 +214,7 @@ mod tests {
     );
     let options = TestOptions {
       junit: Some("build/junit".into()),
-      release: true,
+      build_type: BuildType::Release,
       ..TestOptions::default()
     };
     let tester = Tester::plan(&project, &options).unwrap();
@@ -308,7 +308,6 @@ mod tests {
     let ctx = SuiteContext {
       project: &project,
       options: &options,
-      build_type: BuildType::Debug,
       ci_seed: None,
       headless: true,
     };

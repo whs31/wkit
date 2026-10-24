@@ -7,7 +7,7 @@ use wkit_core::{
   version::{Flavor, Scheme},
 };
 use wkit_manifest::{
-  BuildType, Command, MANIFEST_FILE, Manifest, ManifestError, Project, TestRunner, VersionFileKind,
+  Command, MANIFEST_FILE, Manifest, ManifestError, Project, TestRunner, VersionFileKind,
 };
 
 fn fixture(name: &str) -> PathBuf {
@@ -62,10 +62,10 @@ fn reference_manifest_is_complete_and_valid() {
   );
 
   assert_eq!(m.build.system, Some(BuildSystem::Conan));
-  assert_eq!(m.build.build_type, BuildType::RelWithDebInfo);
+  assert_eq!(m.build.conan.test_option.as_deref(), Some("test"));
   assert_eq!(
-    m.build.conan.option_args(),
-    ["-o", "qt/*:shared=True", "-o", "&:with_map=False"]
+    m.build.conan.setting_args(),
+    ["-s", "compiler.cppstd=gnu23"]
   );
 
   let runners: Vec<_> = m.test.suites.iter().map(|s| s.runner).collect();
@@ -90,7 +90,7 @@ fn minimal_manifest_gets_language_driven_defaults() {
   assert!(m.check.format && m.check.versions && m.check.secrets);
   assert!(m.check.whitespace && m.check.pre_commit);
   assert_eq!(m.test.junit_dir(), std::path::Path::new("build/junit"));
-  assert_eq!(m.build.build_type, BuildType::Debug);
+  assert_eq!(m.build.conan.test_option, None);
   assert!(m.version.is_none() && m.bins.is_empty() && m.default_bin().is_none());
   let clean = m.clean.effective_paths(m.languages());
   assert!(clean.contains(&"build".to_owned()) && !clean.contains(&"target".to_owned()));
@@ -145,6 +145,9 @@ fn validation_collects_every_problem() {
     [check.clang-tidy]
     enabled = true
 
+    [build.conan]
+    settings = { build_type = "Release" }
+
     [[bin]]
     name = "a"
     [[bin]]
@@ -173,6 +176,7 @@ fn validation_collects_every_problem() {
     "cannot hold a calendar version",
     "`version.source` (`missing.py`)",
     "`check.clang-tidy` is enabled",
+    "must not set `build_type`",
     "uses catch2, which does not fit",
     "`profile` only applies to nextest",
     "needs a `binary`",

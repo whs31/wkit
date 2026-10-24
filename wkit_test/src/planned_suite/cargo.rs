@@ -7,7 +7,7 @@ impl PlannedSuite {
   pub(super) fn cargo(ctx: &SuiteContext<'_>, suite: &TestSuite, name: String) -> Self {
     let build = &ctx.project.manifest.build.cargo;
     let mut process = build.command(ctx.root(), &["test", "--workspace"]);
-    if ctx.options.release {
+    if ctx.options.build_type.is_optimized() {
       process = process.arg("--release");
     }
     process = process.args(&suite.args);

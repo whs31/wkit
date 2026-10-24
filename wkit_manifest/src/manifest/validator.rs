@@ -20,6 +20,7 @@ impl<'a> Validator<'a> {
       validator.versions(version);
     }
     validator.toggles();
+    validator.build();
     validator.tests();
     validator.tasks();
     validator.problems
@@ -54,6 +55,20 @@ impl<'a> Validator<'a> {
       self.report(format!(
         "`project.default-run` refers to `{default}`, but no `[[bin]]` has that name"
       ));
+    }
+  }
+
+  fn build(&mut self) {
+    if self
+      .manifest
+      .build
+      .conan
+      .settings
+      .contains_key("build_type")
+    {
+      self.report(
+        "`build.conan.settings` must not set `build_type`; it comes from the Conan profile or `--build-type`",
+      );
     }
   }
 

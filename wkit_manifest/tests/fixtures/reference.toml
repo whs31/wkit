@@ -74,16 +74,14 @@ env = { QT_QPA_PLATFORM = "offscreen" }
 
 [build]
 system = "conan"                          # default: conanfile.py > Cargo.toml > CMakeLists.txt
-build-type = "RelWithDebInfo"             # Debug (default) | Release | RelWithDebInfo | MinSizeRel
 
 [build.conan]
 profile-host = "default"
 profile-build = "default"
 settings = { "compiler.cppstd" = "gnu23" }
-options = { with_map = false, "qt/*:shared" = true }
 conf = { "tools.build:jobs" = 4, "core:non_interactive" = true }
 build-missing = true
-test-option = "test"                      # toggled on by `wkit test`
+test-option = "test"                      # default: inferred from the conanfile options; toggled on by `wkit test`
 workspace = false                         # `conan workspace build` instead of `conan build`
 args = ["-vwarning"]
 

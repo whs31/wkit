@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "wkit",
+    "wkit_build",
     "wkit_check",
     "wkit_core",
     "wkit_manifest",
@@ -21,6 +22,7 @@ homepage = "https://github.com/whs31/wkit"
 repository = "https://github.com/whs31/wkit"
 
 [workspace.dependencies]
+wkit_build = { path = "wkit_build", version = "0.1.0" }
 wkit_check = { path = "wkit_check", version = "0.1.0" }
 wkit_core = { path = "wkit_core", version = "0.1.0" }
 wkit_fmt = { path = "wkit_fmt", version = "0.1.0" }

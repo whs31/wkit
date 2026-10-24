@@ -1,16 +1,16 @@
 use wkit_manifest::{TestRunner, TestSuite};
 
 use super::PlannedSuite;
-use crate::{BuildDir, Error, Result, SuiteContext};
+use crate::{Error, Result, SuiteContext};
 
 impl PlannedSuite {
   pub(super) fn catch2(ctx: &SuiteContext<'_>, suite: &TestSuite, name: String) -> Result<Self> {
-    let dir = BuildDir::resolve(ctx.project, suite.build_dir.as_deref(), ctx.build_type)?;
+    let dir = ctx.build_dir(suite)?;
     let binary = suite.binary.as_deref().unwrap_or(&name);
     let path = Self::find_binary(&dir, binary).ok_or_else(|| {
       Error::setup(
         format!("test binary `{binary}` not found in `{}`", dir.display()),
-        Some(BuildDir::hint(ctx.project, ctx.build_type)),
+        Some("check `binary` in `[[test.suite]]`".to_owned()),
       )
     })?;
     let mut process = wkit_core::ProcessBuilder::new(path).cwd(ctx.root());

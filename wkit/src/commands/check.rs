@@ -1,4 +1,5 @@
-use wkit_check::{CheckOptions, Checker};
+use wkit_build::{BuildOptions, Builder};
+use wkit_check::{CheckOptions, Checker, ClangTidy};
 use wkit_core::shell::Verbosity;
 
 use crate::{context::Context, failure::Failure};
@@ -34,11 +35,26 @@ impl CheckArgs {
       ctx.shell.warn("no checks to run")?;
       return Ok(());
     }
+    let jobs = self.jobs.map(std::num::NonZeroUsize::get);
+    let mut build_dir = self.build_dir.map(|dir| ctx.cwd.join(dir));
+    if build_dir.is_none()
+      && checker.names().iter().any(|n| n == ClangTidy::NAME)
+      && !ClangTidy::is_configured(&project.root)
+    {
+      let options = BuildOptions {
+        tests: true,
+        jobs,
+        ..BuildOptions::default()
+      };
+      build_dir = Builder::new(&project, &options)
+        .run_native(ctx.shell)?
+        .and_then(|outcome| outcome.build_dir().map(ToOwned::to_owned));
+    }
     let defaults = CheckOptions::default();
     let options = CheckOptions {
-      jobs: self.jobs.map_or(defaults.jobs, std::num::NonZeroUsize::get),
+      jobs: jobs.unwrap_or(defaults.jobs),
       cache: !self.no_cache,
-      build_dir: self.build_dir.map(|dir| ctx.cwd.join(dir)),
+      build_dir,
       verbose: ctx.shell.verbosity() == Verbosity::Verbose,
     };
     let start = std::time::Instant::now();

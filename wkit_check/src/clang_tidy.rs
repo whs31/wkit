@@ -21,9 +21,14 @@ pub struct ClangTidy {
 }
 
 impl ClangTidy {
+  pub const NAME: &str = "clang-tidy";
   pub const TOOL: &str = "clang-tidy";
   pub const CACHE_DIR: &str = ".clang-tidy-cache";
   pub const CONFIG: &str = ".clang-tidy";
+
+  pub fn is_configured(root: &std::path::Path) -> bool {
+    CompileDatabase::discover(root, None).is_ok()
+  }
 
   pub fn new(root: impl Into<std::path::PathBuf>, tool: Tool, config: ClangTidyCheck) -> Self {
     Self {
@@ -206,7 +211,7 @@ impl ClangTidy {
 
 impl Check for ClangTidy {
   fn name(&self) -> String {
-    "clang-tidy".to_owned()
+    Self::NAME.to_owned()
   }
 
   #[allow(clippy::too_many_lines)]

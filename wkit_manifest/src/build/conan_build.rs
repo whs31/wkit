@@ -6,7 +6,6 @@ pub struct ConanBuild {
   pub profile_host: Option<String>,
   pub profile_build: Option<String>,
   pub settings: std::collections::BTreeMap<String, String>,
-  pub options: std::collections::BTreeMap<String, ConanValue>,
   pub conf: std::collections::BTreeMap<String, ConanValue>,
   pub build_missing: bool,
   pub test_option: Option<String>,
@@ -20,10 +19,9 @@ impl Default for ConanBuild {
       profile_host: None,
       profile_build: None,
       settings: std::collections::BTreeMap::new(),
-      options: std::collections::BTreeMap::new(),
       conf: std::collections::BTreeMap::new(),
       build_missing: true,
-      test_option: Some("test".to_owned()),
+      test_option: None,
       workspace: false,
       args: Vec::new(),
     }
@@ -31,18 +29,20 @@ impl Default for ConanBuild {
 }
 
 impl ConanBuild {
-  pub fn option_args(&self) -> Vec<String> {
+  pub const TEST_OPTIONS: [&str; 6] = [
+    "test",
+    "tests",
+    "with_tests",
+    "build_tests",
+    "enable_tests",
+    "testing",
+  ];
+
+  pub fn setting_args(&self) -> Vec<String> {
     self
-      .options
+      .settings
       .iter()
-      .flat_map(|(key, value)| {
-        let scoped = if key.contains(':') {
-          key.clone()
-        } else {
-          format!("&:{key}")
-        };
-        ["-o".to_owned(), format!("{scoped}={value}")]
-      })
+      .flat_map(|(key, value)| ["-s".to_owned(), format!("{key}={value}")])
       .collect()
   }
 
@@ -60,27 +60,15 @@ mod tests {
   use super::*;
 
   #[test]
-  fn options_are_consumer_scoped_with_python_bools() {
+  fn settings_and_conf_become_arguments() {
     let conan: ConanBuild = toml::from_str(
       r#"
-      options = { test = true, with_map = false, "qt/*:shared" = true, jobs = 4 }
+      settings = { "compiler.cppstd" = "gnu23" }
       conf = { "tools.build:jobs" = 4, "core:non_interactive" = true }
       "#,
     )
     .unwrap();
-    assert_eq!(
-      conan.option_args(),
-      [
-        "-o",
-        "&:jobs=4",
-        "-o",
-        "qt/*:shared=True",
-        "-o",
-        "&:test=True",
-        "-o",
-        "&:with_map=False"
-      ]
-    );
+    assert_eq!(conan.setting_args(), ["-s", "compiler.cppstd=gnu23"]);
     assert_eq!(
       conan.conf_args(),
       [
@@ -90,7 +78,7 @@ mod tests {
         "tools.build:jobs=4"
       ]
     );
-    assert_eq!(conan.test_option.as_deref(), Some("test"));
+    assert_eq!(conan.test_option, None);
     assert!(conan.build_missing);
   }
 }

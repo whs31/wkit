@@ -17,4 +17,3 @@ args = ["hello"]
 
 [[test.suite]]
 runner = "ctest"
-build-dir = "build/default"
