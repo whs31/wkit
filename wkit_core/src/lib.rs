@@ -7,7 +7,9 @@ pub mod shell;
 pub mod tool;
 pub mod version;
 
-pub use error::{Error, Result};
-pub use lang::Language;
-pub use process::ProcessBuilder;
-pub use shell::Shell;
+pub use self::{
+  error::{Error, Result},
+  lang::Language,
+  process::ProcessBuilder,
+  shell::Shell,
+};

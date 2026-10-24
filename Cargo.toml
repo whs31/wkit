@@ -20,11 +20,12 @@ wkit_manifest = { path = "wkit_manifest" }
 
 anstream = "1"
 anstyle = "1"
+derive_more = { version = "2", features = ["display"] }
 ignore = "0.4"
 indicatif = "0.18"
 jiff = "0.2"
 regex = "1"
-semver = "1"
+semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 serde_ignored = "0.1"
 thiserror = "2"

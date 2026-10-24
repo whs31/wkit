@@ -1,33 +1,27 @@
-use std::{
-  fmt::Write,
-  io,
-  path::{Path, PathBuf},
-};
-
 use crate::MANIFEST_FILE;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ManifestError {
   #[error("could not find `{MANIFEST_FILE}` in `{}` or any parent directory", start.display())]
-  NotFound { start: PathBuf },
+  NotFound { start: std::path::PathBuf },
 
   #[error("failed to read `{}`", path.display())]
   Read {
-    path: PathBuf,
+    path: std::path::PathBuf,
     #[source]
-    source: io::Error,
+    source: std::io::Error,
   },
 
-  #[error("failed to parse manifest{}", at(path.as_deref()))]
+  #[error("failed to parse manifest{}", Self::location(path.as_deref()))]
   Parse {
-    path: Option<PathBuf>,
+    path: Option<std::path::PathBuf>,
     #[source]
     source: Box<toml::de::Error>,
   },
 
-  #[error("invalid manifest{}:{}", at(path.as_deref()), bullets(problems))]
+  #[error("invalid manifest{}:{}", Self::location(path.as_deref()), Self::bullets(problems))]
   Invalid {
-    path: Option<PathBuf>,
+    path: Option<std::path::PathBuf>,
     problems: Vec<String>,
   },
 
@@ -40,15 +34,18 @@ pub enum ManifestError {
   },
 }
 
-fn at(path: Option<&Path>) -> String {
-  path
-    .map(|p| format!(" at `{}`", p.display()))
-    .unwrap_or_default()
-}
+impl ManifestError {
+  fn location(path: Option<&std::path::Path>) -> String {
+    path
+      .map(|p| format!(" at `{}`", p.display()))
+      .unwrap_or_default()
+  }
 
-fn bullets(problems: &[String]) -> String {
-  problems.iter().fold(String::new(), |mut out, p| {
-    let _ = write!(out, "\n  - {p}");
-    out
-  })
+  fn bullets(problems: &[String]) -> String {
+    problems.iter().fold(String::new(), |mut out, p| {
+      out.push_str("\n  - ");
+      out.push_str(p);
+      out
+    })
+  }
 }

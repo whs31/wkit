@@ -1,85 +1,23 @@
-use std::{
-  fmt,
-  io::{self, Write},
-  str::FromStr,
-  time::Duration,
-};
+mod color_choice;
+mod elapsed;
+mod sink;
+pub mod style;
+mod verbosity;
 
-use anstream::AutoStream;
-use anstyle::Style;
-use indicatif::{ProgressBar, ProgressDrawTarget, ProgressStyle};
+use self::sink::Sink;
+pub use self::{color_choice::ColorChoice, elapsed::Elapsed, verbosity::Verbosity};
 
 pub const STATUS_WIDTH: usize = 12;
-
-pub mod style {
-  use anstyle::{AnsiColor, Style};
-
-  pub const HEADER: Style = AnsiColor::Green.on_default().bold();
-  pub const PROGRESS: Style = AnsiColor::Cyan.on_default().bold();
-  pub const ERROR: Style = AnsiColor::Red.on_default().bold();
-  pub const WARN: Style = AnsiColor::Yellow.on_default().bold();
-  pub const NOTE: Style = AnsiColor::Cyan.on_default().bold();
-  pub const DIM: Style = Style::new().dimmed();
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Verbosity {
-  Quiet,
-  #[default]
-  Normal,
-  Verbose,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum ColorChoice {
-  #[default]
-  Auto,
-  Always,
-  Never,
-}
-
-impl ColorChoice {
-  fn to_stream(self) -> anstream::ColorChoice {
-    match self {
-      Self::Auto => anstream::ColorChoice::Auto,
-      Self::Always => anstream::ColorChoice::Always,
-      Self::Never => anstream::ColorChoice::Never,
-    }
-  }
-}
-
-impl FromStr for ColorChoice {
-  type Err = String;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    match s {
-      "auto" => Ok(Self::Auto),
-      "always" => Ok(Self::Always),
-      "never" => Ok(Self::Never),
-      other => Err(format!(
-        "argument for --color must be auto, always, or never, but found `{other}`"
-      )),
-    }
-  }
-}
-
-enum Sink {
-  Std {
-    out: AutoStream<io::Stdout>,
-    err: AutoStream<io::Stderr>,
-  },
-  Write(AutoStream<Box<dyn Write>>),
-}
 
 pub struct Shell {
   sink: Sink,
   verbosity: Verbosity,
   color: ColorChoice,
-  progress: Option<ProgressBar>,
+  progress: Option<indicatif::ProgressBar>,
 }
 
-impl fmt::Debug for Shell {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Debug for Shell {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.debug_struct("Shell")
       .field("verbosity", &self.verbosity)
       .field("color", &self.color)
@@ -100,26 +38,19 @@ impl Shell {
 
   pub fn with(verbosity: Verbosity, color: ColorChoice) -> Self {
     Self {
-      sink: Self::std_sink(color),
+      sink: Sink::std(color),
       verbosity,
       color,
       progress: None,
     }
   }
 
-  pub fn from_write(out: Box<dyn Write>) -> Self {
+  pub fn from_write(out: Box<dyn std::io::Write>) -> Self {
     Self {
-      sink: Sink::Write(AutoStream::new(out, anstream::ColorChoice::Never)),
+      sink: Sink::write(out),
       verbosity: Verbosity::Normal,
       color: ColorChoice::Never,
       progress: None,
-    }
-  }
-
-  fn std_sink(color: ColorChoice) -> Sink {
-    Sink::Std {
-      out: AutoStream::new(io::stdout(), color.to_stream()),
-      err: AutoStream::new(io::stderr(), color.to_stream()),
     }
   }
 
@@ -138,52 +69,40 @@ impl Shell {
   pub fn set_color_choice(&mut self, color: ColorChoice) {
     self.color = color;
     if matches!(self.sink, Sink::Std { .. }) {
-      self.sink = Self::std_sink(color);
+      self.sink = Sink::std(color);
     }
   }
 
   pub fn err_supports_color(&self) -> bool {
-    match &self.sink {
-      Sink::Std { err, .. } => err.current_choice() != anstream::ColorChoice::Never,
-      Sink::Write(_) => false,
-    }
+    self.sink.err_supports_color()
   }
 
   pub fn is_err_tty(&self) -> bool {
-    match &self.sink {
-      Sink::Std { .. } => io::IsTerminal::is_terminal(&io::stderr()),
-      Sink::Write(_) => false,
-    }
+    self.sink.is_err_tty()
   }
 
-  pub fn out(&mut self) -> &mut dyn Write {
-    match &mut self.sink {
-      Sink::Std { out, .. } => out,
-      Sink::Write(w) => w,
-    }
+  pub fn out(&mut self) -> &mut dyn std::io::Write {
+    self.sink.out()
   }
 
-  pub fn err(&mut self) -> &mut dyn Write {
-    match &mut self.sink {
-      Sink::Std { err, .. } => err,
-      Sink::Write(w) => w,
-    }
+  pub fn err(&mut self) -> &mut dyn std::io::Write {
+    self.sink.err()
   }
 
   pub fn status(
     &mut self,
-    status: impl fmt::Display,
-    message: impl fmt::Display,
-  ) -> io::Result<()> {
+    status: impl std::fmt::Display,
+    message: impl std::fmt::Display,
+  ) -> std::io::Result<()> {
     self.status_with_style(status, message, &style::HEADER)
   }
 
   pub fn status_with_style(
     &mut self,
-    status: impl fmt::Display,
-    message: impl fmt::Display,
-    style: &Style,
-  ) -> io::Result<()> {
+    status: impl std::fmt::Display,
+    message: impl std::fmt::Display,
+    style: &anstyle::Style,
+  ) -> std::io::Result<()> {
     if self.verbosity == Verbosity::Quiet {
       return Ok(());
     }
@@ -193,7 +112,10 @@ impl Shell {
     ))
   }
 
-  pub fn verbose(&mut self, f: impl FnOnce(&mut Self) -> io::Result<()>) -> io::Result<()> {
+  pub fn verbose(
+    &mut self,
+    f: impl FnOnce(&mut Self) -> std::io::Result<()>,
+  ) -> std::io::Result<()> {
     if self.verbosity == Verbosity::Verbose {
       f(self)
     } else {
@@ -201,57 +123,63 @@ impl Shell {
     }
   }
 
-  pub fn error(&mut self, message: impl fmt::Display) -> io::Result<()> {
+  pub fn error(&mut self, message: impl std::fmt::Display) -> std::io::Result<()> {
     self.labeled("error", message, &style::ERROR)
   }
 
-  pub fn warn(&mut self, message: impl fmt::Display) -> io::Result<()> {
+  pub fn warn(&mut self, message: impl std::fmt::Display) -> std::io::Result<()> {
     if self.verbosity == Verbosity::Quiet {
       return Ok(());
     }
     self.labeled("warning", message, &style::WARN)
   }
 
-  pub fn note(&mut self, message: impl fmt::Display) -> io::Result<()> {
+  pub fn note(&mut self, message: impl std::fmt::Display) -> std::io::Result<()> {
     if self.verbosity == Verbosity::Quiet {
       return Ok(());
     }
     self.labeled("note", message, &style::NOTE)
   }
 
-  pub fn finished(&mut self, what: impl fmt::Display, elapsed: Duration) -> io::Result<()> {
-    self.status(
-      "Finished",
-      format_args!("{what} in {}", format_duration(elapsed)),
-    )
+  pub fn finished(
+    &mut self,
+    what: impl std::fmt::Display,
+    elapsed: std::time::Duration,
+  ) -> std::io::Result<()> {
+    self.status("Finished", format_args!("{what} in {}", Elapsed(elapsed)))
   }
 
-  pub fn progress(&mut self, status: &str, len: u64) -> ProgressBar {
+  pub fn progress(&mut self, status: &str, len: u64) -> indicatif::ProgressBar {
     let target = if self.verbosity == Verbosity::Quiet || !self.is_err_tty() {
-      ProgressDrawTarget::hidden()
+      indicatif::ProgressDrawTarget::hidden()
     } else {
-      ProgressDrawTarget::stderr()
+      indicatif::ProgressDrawTarget::stderr()
     };
     let template = if self.err_supports_color() {
       "{prefix:>12.cyan.bold} [{bar:27}] {pos}/{len}{wide_msg}"
     } else {
       "{prefix:>12} [{bar:27}] {pos}/{len}{wide_msg}"
     };
-    let style = ProgressStyle::with_template(template)
+    let style = indicatif::ProgressStyle::with_template(template)
       .expect("progress template is valid")
       .progress_chars("=> ");
-    let bar = ProgressBar::with_draw_target(Some(len), target)
+    let bar = indicatif::ProgressBar::with_draw_target(Some(len), target)
       .with_style(style)
       .with_prefix(status.to_owned());
     self.progress = Some(bar.clone());
     bar
   }
 
-  fn labeled(&mut self, label: &str, message: impl fmt::Display, style: &Style) -> io::Result<()> {
+  fn labeled(
+    &mut self,
+    label: &str,
+    message: impl std::fmt::Display,
+    style: &anstyle::Style,
+  ) -> std::io::Result<()> {
     self.write_err(&format!("{style}{label}{style:#}: {message}\n"))
   }
 
-  fn write_err(&mut self, text: &str) -> io::Result<()> {
+  fn write_err(&mut self, text: &str) -> std::io::Result<()> {
     let progress = self.progress.clone();
     let err = self.err();
     match progress {
@@ -263,18 +191,9 @@ impl Shell {
   }
 }
 
-pub fn format_duration(elapsed: Duration) -> String {
-  let secs = elapsed.as_secs();
-  if secs >= 60 {
-    format!("{}m {:02}s", secs / 60, secs % 60)
-  } else {
-    format!("{:.2}s", elapsed.as_secs_f64())
-  }
-}
-
 #[cfg(test)]
 mod tests {
-  use std::{cell::RefCell, rc::Rc};
+  use std::{cell::RefCell, io::Write, rc::Rc};
 
   use super::*;
 
@@ -282,12 +201,12 @@ mod tests {
   struct Capture(Rc<RefCell<Vec<u8>>>);
 
   impl Write for Capture {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
       self.0.borrow_mut().extend_from_slice(buf);
       Ok(buf.len())
     }
 
-    fn flush(&mut self) -> io::Result<()> {
+    fn flush(&mut self) -> std::io::Result<()> {
       Ok(())
     }
   }
@@ -335,14 +254,11 @@ mod tests {
   }
 
   #[test]
-  fn durations() {
-    assert_eq!(format_duration(Duration::from_millis(1234)), "1.23s");
-    assert_eq!(format_duration(Duration::from_secs(125)), "2m 05s");
-  }
-
-  #[test]
-  fn color_choice_parses() {
-    assert_eq!("never".parse::<ColorChoice>(), Ok(ColorChoice::Never));
-    assert!("sometimes".parse::<ColorChoice>().is_err());
+  fn finished_reports_elapsed_time() {
+    let (mut shell, capture) = shell();
+    shell
+      .finished("formatting", std::time::Duration::from_millis(1500))
+      .unwrap();
+    assert_eq!(capture.text(), "    Finished formatting in 1.50s\n");
   }
 }

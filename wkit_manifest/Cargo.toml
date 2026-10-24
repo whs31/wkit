@@ -14,6 +14,7 @@ workspace = true
 
 [dependencies]
 wkit_core.workspace = true
+derive_more.workspace = true
 regex.workspace = true
 semver.workspace = true
 serde.workspace = true

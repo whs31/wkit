@@ -1,13 +1,7 @@
-use std::{fmt, path::PathBuf};
+mod tool_source;
 
+pub use self::tool_source::ToolSource;
 use crate::ProcessBuilder;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ToolSource {
-  Uv { package: String, version: String },
-  Path(PathBuf),
-  System,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tool {
@@ -37,7 +31,7 @@ impl Tool {
   pub fn version(&self) -> Option<&str> {
     match &self.source {
       ToolSource::Uv { version, .. } => Some(version),
-      _ => None,
+      ToolSource::Path(_) | ToolSource::System => None,
     }
   }
 
@@ -53,8 +47,8 @@ impl Tool {
   }
 }
 
-impl fmt::Display for Tool {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for Tool {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match &self.source {
       ToolSource::Uv { version, .. } => write!(f, "{} {version}", self.name),
       ToolSource::Path(path) => write!(f, "{} ({})", self.name, path.display()),
@@ -75,6 +69,7 @@ mod tests {
       "uv tool run --quiet --from clang-format==23.1.3 clang-format --version"
     );
     assert_eq!(tool.to_string(), "clang-format 23.1.3");
+    assert_eq!(tool.version(), Some("23.1.3"));
   }
 
   #[test]
@@ -85,5 +80,6 @@ mod tests {
     };
     assert_eq!(path.command().to_string(), "/opt/llvm/bin/clang-tidy");
     assert_eq!(Tool::system("qmllint").command().to_string(), "qmllint");
+    assert_eq!(Tool::system("qmllint").to_string(), "qmllint (system)");
   }
 }

@@ -1,30 +1,24 @@
-use std::{
-  borrow::Cow,
-  collections::BTreeMap,
-  ffi::{OsStr, OsString},
-  fmt, io,
-  path::{Path, PathBuf},
-  process::{Command, ExitStatus, Output, Stdio},
-};
+mod shell_quoted;
 
+pub use self::shell_quoted::ShellQuoted;
 use crate::{Error, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[must_use]
 pub struct ProcessBuilder {
-  program: OsString,
-  args: Vec<OsString>,
-  cwd: Option<PathBuf>,
-  env: BTreeMap<OsString, Option<OsString>>,
+  program: std::ffi::OsString,
+  args: Vec<std::ffi::OsString>,
+  cwd: Option<std::path::PathBuf>,
+  env: std::collections::BTreeMap<std::ffi::OsString, Option<std::ffi::OsString>>,
 }
 
 impl ProcessBuilder {
-  pub fn new(program: impl AsRef<OsStr>) -> Self {
+  pub fn new(program: impl AsRef<std::ffi::OsStr>) -> Self {
     Self {
       program: program.as_ref().to_owned(),
       args: Vec::new(),
       cwd: None,
-      env: BTreeMap::new(),
+      env: std::collections::BTreeMap::new(),
     }
   }
 
@@ -36,7 +30,7 @@ impl ProcessBuilder {
     }
   }
 
-  pub fn arg(mut self, arg: impl AsRef<OsStr>) -> Self {
+  pub fn arg(mut self, arg: impl AsRef<std::ffi::OsStr>) -> Self {
     self.args.push(arg.as_ref().to_owned());
     self
   }
@@ -44,7 +38,7 @@ impl ProcessBuilder {
   pub fn args<I, S>(mut self, args: I) -> Self
   where
     I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
+    S: AsRef<std::ffi::OsStr>,
   {
     self
       .args
@@ -52,41 +46,49 @@ impl ProcessBuilder {
     self
   }
 
-  pub fn cwd(mut self, cwd: impl AsRef<Path>) -> Self {
+  pub fn cwd(mut self, cwd: impl AsRef<std::path::Path>) -> Self {
     self.cwd = Some(cwd.as_ref().to_owned());
     self
   }
 
-  pub fn env(mut self, key: impl AsRef<OsStr>, value: impl AsRef<OsStr>) -> Self {
+  pub fn env(
+    mut self,
+    key: impl AsRef<std::ffi::OsStr>,
+    value: impl AsRef<std::ffi::OsStr>,
+  ) -> Self {
     self
       .env
       .insert(key.as_ref().to_owned(), Some(value.as_ref().to_owned()));
     self
   }
 
-  pub fn env_remove(mut self, key: impl AsRef<OsStr>) -> Self {
+  pub fn env_remove(mut self, key: impl AsRef<std::ffi::OsStr>) -> Self {
     self.env.insert(key.as_ref().to_owned(), None);
     self
   }
 
-  pub fn get_program(&self) -> &OsStr {
+  pub fn get_program(&self) -> &std::ffi::OsStr {
     &self.program
   }
 
-  pub fn get_args(&self) -> &[OsString] {
+  pub fn get_args(&self) -> &[std::ffi::OsString] {
     &self.args
   }
 
-  pub fn get_cwd(&self) -> Option<&Path> {
+  pub fn get_cwd(&self) -> Option<&std::path::Path> {
     self.cwd.as_deref()
   }
 
-  pub fn get_env(&self, key: impl AsRef<OsStr>) -> Option<&OsStr> {
+  pub fn get_env(&self, key: impl AsRef<std::ffi::OsStr>) -> Option<&std::ffi::OsStr> {
     self.env.get(key.as_ref()).and_then(Option::as_deref)
   }
 
-  pub fn command(&self) -> Command {
-    let mut command = Command::new(&self.program);
+  pub fn program_path(&self) -> Option<std::path::PathBuf> {
+    which::which(&self.program).ok()
+  }
+
+  pub fn command(&self) -> std::process::Command {
+    let mut command = std::process::Command::new(&self.program);
     command.args(&self.args);
     if let Some(cwd) = &self.cwd {
       command.current_dir(cwd);
@@ -105,11 +107,11 @@ impl ProcessBuilder {
     self.check(status, String::new())
   }
 
-  pub fn status_unchecked(&self) -> Result<ExitStatus> {
+  pub fn status_unchecked(&self) -> Result<std::process::ExitStatus> {
     self.command().status().map_err(|e| self.spawn_error(e))
   }
 
-  pub fn output(&self) -> Result<Output> {
+  pub fn output(&self) -> Result<std::process::Output> {
     let output = self.output_unchecked()?;
     self.check(
       output.status,
@@ -118,15 +120,15 @@ impl ProcessBuilder {
     Ok(output)
   }
 
-  pub fn output_unchecked(&self) -> Result<Output> {
+  pub fn output_unchecked(&self) -> Result<std::process::Output> {
     self
       .command()
-      .stdin(Stdio::null())
+      .stdin(std::process::Stdio::null())
       .output()
       .map_err(|e| self.spawn_error(e))
   }
 
-  fn check(&self, status: ExitStatus, stderr: String) -> Result<()> {
+  fn check(&self, status: std::process::ExitStatus, stderr: String) -> Result<()> {
     if status.success() {
       Ok(())
     } else {
@@ -138,9 +140,9 @@ impl ProcessBuilder {
     }
   }
 
-  fn spawn_error(&self, source: io::Error) -> Error {
-    if source.kind() == io::ErrorKind::NotFound && self.cwd.as_ref().is_none_or(|cwd| cwd.is_dir())
-    {
+  fn spawn_error(&self, source: std::io::Error) -> Error {
+    let cwd_exists = self.cwd.as_ref().is_none_or(|cwd| cwd.is_dir());
+    if source.kind() == std::io::ErrorKind::NotFound && cwd_exists {
       Error::ProgramNotFound {
         program: self.program.to_string_lossy().into_owned(),
       }
@@ -153,30 +155,14 @@ impl ProcessBuilder {
   }
 }
 
-impl fmt::Display for ProcessBuilder {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    f.write_str(&quote(&self.program.to_string_lossy()))?;
+impl std::fmt::Display for ProcessBuilder {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", ShellQuoted(&self.program.to_string_lossy()))?;
     for arg in &self.args {
-      write!(f, " {}", quote(&arg.to_string_lossy()))?;
+      write!(f, " {}", ShellQuoted(&arg.to_string_lossy()))?;
     }
     Ok(())
   }
-}
-
-fn quote(arg: &str) -> Cow<'_, str> {
-  let plain = !arg.is_empty()
-    && arg
-      .chars()
-      .all(|c| c.is_ascii_alphanumeric() || "-_./=:+,@%".contains(c));
-  if plain {
-    Cow::Borrowed(arg)
-  } else {
-    Cow::Owned(format!("'{}'", arg.replace('\'', r"'\''")))
-  }
-}
-
-pub fn find_program(name: impl AsRef<OsStr>) -> Option<PathBuf> {
-  which::which(name).ok()
 }
 
 #[cfg(test)]
@@ -184,22 +170,20 @@ mod tests {
   use super::*;
 
   #[test]
-  fn display_quotes_only_when_needed() {
+  fn display_is_a_pasteable_command_line() {
     let p = ProcessBuilder::new("conan")
       .args(["build", ".", "-o", "&:test=True"])
-      .arg("hello world")
-      .arg("")
-      .arg("it's");
+      .arg("hello world");
     assert_eq!(
       p.to_string(),
-      r"conan build . -o '&:test=True' 'hello world' '' 'it'\''s'"
+      "conan build . -o '&:test=True' 'hello world'"
     );
   }
 
   #[test]
   fn env_overrides_are_recorded() {
     let p = ProcessBuilder::new("x").env("A", "1").env_remove("B");
-    assert_eq!(p.get_env("A"), Some(OsStr::new("1")));
+    assert_eq!(p.get_env("A"), Some(std::ffi::OsStr::new("1")));
     assert_eq!(p.get_env("B"), None);
   }
 
@@ -217,9 +201,9 @@ mod tests {
 
   #[test]
   fn missing_program_is_reported_by_name() {
-    let err = ProcessBuilder::new("wkit-definitely-not-installed")
-      .status()
-      .unwrap_err();
+    let missing = ProcessBuilder::new("wkit-definitely-not-installed");
+    assert_eq!(missing.program_path(), None);
+    let err = missing.status().unwrap_err();
     assert!(
       matches!(err, Error::ProgramNotFound { ref program } if program == "wkit-definitely-not-installed")
     );
@@ -228,7 +212,8 @@ mod tests {
   #[cfg(unix)]
   #[test]
   fn output_captures_stdout() {
-    let out = ProcessBuilder::new("printf").arg("hi").output().unwrap();
-    assert_eq!(out.stdout, b"hi");
+    let printf = ProcessBuilder::new("printf").arg("hi");
+    assert!(printf.program_path().is_some());
+    assert_eq!(printf.output().unwrap().stdout, b"hi");
   }
 }

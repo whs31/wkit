@@ -1,73 +1,16 @@
-use std::{
-  collections::BTreeMap,
-  path::{Path, PathBuf},
-};
+mod tool_entry;
 
-use serde::Deserialize;
 use wkit_core::tool::{Tool, ToolSource};
 
-use crate::de::Shorthand;
+pub use self::tool_entry::ToolEntry;
 
-pub const DEFAULT_TOOLS: &[(&str, &str)] = &[("clang-format", "23.1.3"), ("clang-tidy", "22.1.8")];
-
-const SYSTEM: &str = "system";
-
-#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Deserialize)]
 #[serde(transparent)]
-pub struct Tools(BTreeMap<String, ToolEntry>);
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(try_from = "Shorthand<ToolDetail>")]
-pub enum ToolEntry {
-  Pinned {
-    package: Option<String>,
-    version: String,
-  },
-  Path(PathBuf),
-  System,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub(crate) struct ToolDetail {
-  version: Option<String>,
-  package: Option<String>,
-  path: Option<PathBuf>,
-}
-
-impl TryFrom<Shorthand<ToolDetail>> for ToolEntry {
-  type Error = &'static str;
-
-  fn try_from(value: Shorthand<ToolDetail>) -> Result<Self, Self::Error> {
-    match value {
-      Shorthand::Str(v) if v == SYSTEM => Ok(Self::System),
-      Shorthand::Str(version) => Ok(Self::Pinned {
-        package: None,
-        version,
-      }),
-      Shorthand::Map(ToolDetail {
-        path: Some(path),
-        version: None,
-        package: None,
-      }) => Ok(Self::Path(path)),
-      Shorthand::Map(ToolDetail { path: Some(_), .. }) => {
-        Err("`path` cannot be combined with `version` or `package`")
-      }
-      Shorthand::Map(ToolDetail {
-        version: Some(v), ..
-      }) if v == SYSTEM => Ok(Self::System),
-      Shorthand::Map(ToolDetail {
-        version: Some(version),
-        package,
-        ..
-      }) => Ok(Self::Pinned { package, version }),
-      Shorthand::Map(_) => Err("a tool needs either `version` or `path`"),
-      Shorthand::Seq(_) => Err("expected a version string or a table"),
-    }
-  }
-}
+pub struct Tools(std::collections::BTreeMap<String, ToolEntry>);
 
 impl Tools {
+  pub const DEFAULTS: &[(&str, &str)] = &[("clang-format", "23.1.3"), ("clang-tidy", "22.1.8")];
+
   pub fn get(&self, name: &str) -> Option<&ToolEntry> {
     self.0.get(name)
   }
@@ -76,7 +19,7 @@ impl Tools {
     self.0.iter().map(|(k, v)| (k.as_str(), v))
   }
 
-  pub fn resolve(&self, name: &str, root: &Path) -> Tool {
+  pub fn resolve(&self, name: &str, root: &std::path::Path) -> Tool {
     let source = match self.0.get(name) {
       Some(ToolEntry::Pinned { package, version }) => ToolSource::Uv {
         package: package.clone().unwrap_or_else(|| name.to_owned()),
@@ -84,7 +27,7 @@ impl Tools {
       },
       Some(ToolEntry::Path(path)) => ToolSource::Path(root.join(path)),
       Some(ToolEntry::System) => ToolSource::System,
-      None => match DEFAULT_TOOLS.iter().find(|(tool, _)| *tool == name) {
+      None => match Self::DEFAULTS.iter().find(|(tool, _)| *tool == name) {
         Some((_, version)) => ToolSource::Uv {
           package: name.to_owned(),
           version: (*version).to_owned(),
@@ -101,6 +44,8 @@ impl Tools {
 
 #[cfg(test)]
 mod tests {
+  use std::path::Path;
+
   use super::*;
 
   fn tools(toml: &str) -> Tools {

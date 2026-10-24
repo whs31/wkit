@@ -1,5 +1,3 @@
-use std::{io, path::PathBuf, process::ExitStatus};
-
 use crate::version::VersionError;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -8,28 +6,28 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 pub enum Error {
   #[error("failed to read `{}`", path.display())]
   Read {
-    path: PathBuf,
+    path: std::path::PathBuf,
     #[source]
-    source: io::Error,
+    source: std::io::Error,
   },
 
   #[error("failed to write `{}`", path.display())]
   Write {
-    path: PathBuf,
+    path: std::path::PathBuf,
     #[source]
-    source: io::Error,
+    source: std::io::Error,
   },
 
   #[error("failed to parse `{}`", path.display())]
   Toml {
-    path: PathBuf,
+    path: std::path::PathBuf,
     #[source]
     source: Box<toml::de::Error>,
   },
 
   #[error("failed to walk `{}`", root.display())]
   Walk {
-    root: PathBuf,
+    root: std::path::PathBuf,
     #[source]
     source: ignore::Error,
   },
@@ -41,13 +39,13 @@ pub enum Error {
   Spawn {
     command: String,
     #[source]
-    source: io::Error,
+    source: std::io::Error,
   },
 
-  #[error("process didn't exit successfully: `{command}` ({status}){}", render_stderr(.stderr))]
+  #[error("process didn't exit successfully: `{command}` ({status}){}", Self::stderr_section(.stderr))]
   ProcessFailed {
     command: String,
-    status: ExitStatus,
+    status: std::process::ExitStatus,
     stderr: String,
   },
 
@@ -62,13 +60,13 @@ impl Error {
       _ => None,
     }
   }
-}
 
-fn render_stderr(stderr: &str) -> String {
-  let stderr = stderr.trim_end();
-  if stderr.is_empty() {
-    String::new()
-  } else {
-    format!("\n--- stderr\n{stderr}")
+  fn stderr_section(stderr: &str) -> String {
+    let stderr = stderr.trim_end();
+    if stderr.is_empty() {
+      String::new()
+    } else {
+      format!("\n--- stderr\n{stderr}")
+    }
   }
 }

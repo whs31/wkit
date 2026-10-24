@@ -1,60 +1,39 @@
-use std::{collections::BTreeMap, path::PathBuf};
+mod command;
+mod custom_check;
 
-use serde::{Deserialize, de::IgnoredAny};
 use wkit_core::ProcessBuilder;
 
+pub use self::{command::Command, custom_check::CustomCheck};
 use crate::de::Shorthand;
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(try_from = "Shorthand<IgnoredAny>")]
-pub enum Command {
-  Shell(String),
-  Argv(Vec<String>),
-}
-
-impl Command {
-  pub fn to_process(&self) -> ProcessBuilder {
-    match self {
-      Self::Shell(line) => ProcessBuilder::shell(line),
-      Self::Argv(argv) => ProcessBuilder::new(&argv[0]).args(&argv[1..]),
-    }
-  }
-
-  fn new(shorthand: Shorthand<impl Sized>) -> Result<Self, &'static str> {
-    match shorthand {
-      Shorthand::Str(line) if !line.trim().is_empty() => Ok(Self::Shell(line)),
-      Shorthand::Seq(argv) if argv.first().is_some_and(|p| !p.is_empty()) => Ok(Self::Argv(argv)),
-      Shorthand::Str(_) | Shorthand::Seq(_) => Err("command must not be empty"),
-      Shorthand::Map(_) => Err("expected a shell command string or an array of arguments"),
-    }
-  }
-}
-
-impl TryFrom<Shorthand<IgnoredAny>> for Command {
-  type Error = &'static str;
-
-  fn try_from(value: Shorthand<IgnoredAny>) -> Result<Self, Self::Error> {
-    Self::new(value)
-  }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
 #[serde(try_from = "Shorthand<TaskDetail>")]
 pub struct Task {
   pub run: Command,
   pub description: Option<String>,
-  pub cwd: Option<PathBuf>,
-  pub env: BTreeMap<String, String>,
+  pub cwd: Option<std::path::PathBuf>,
+  pub env: std::collections::BTreeMap<String, String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub(crate) struct TaskDetail {
   run: Command,
   description: Option<String>,
-  cwd: Option<PathBuf>,
+  cwd: Option<std::path::PathBuf>,
+
   #[serde(default)]
-  env: BTreeMap<String, String>,
+  env: std::collections::BTreeMap<String, String>,
+}
+
+impl Task {
+  pub fn to_process(&self, root: &std::path::Path) -> ProcessBuilder {
+    let cwd = root.join(self.cwd.as_deref().unwrap_or(std::path::Path::new(".")));
+    self
+      .env
+      .iter()
+      .fold(self.run.to_process().cwd(cwd), |p, (k, v)| p.env(k, v))
+  }
 }
 
 impl TryFrom<Shorthand<TaskDetail>> for Task {
@@ -68,44 +47,33 @@ impl TryFrom<Shorthand<TaskDetail>> for Task {
         cwd: detail.cwd,
         env: detail.env,
       }),
-      other => Ok(Self {
-        run: Command::new(other)?,
+      shorthand => Ok(Self {
+        run: Command::from_shorthand(shorthand)?,
         description: None,
         cwd: None,
-        env: BTreeMap::new(),
+        env: std::collections::BTreeMap::new(),
       }),
     }
   }
 }
 
-impl Task {
-  pub fn to_process(&self, root: &std::path::Path) -> ProcessBuilder {
-    let process = self
-      .run
-      .to_process()
-      .cwd(root.join(self.cwd.as_deref().unwrap_or(".".as_ref())));
-    self.env.iter().fold(process, |p, (k, v)| p.env(k, v))
-  }
-}
+#[cfg(test)]
+mod tests {
+  use super::*;
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct CustomCheck {
-  pub name: String,
-  pub run: Command,
-  pub description: Option<String>,
-  pub cwd: Option<PathBuf>,
-  #[serde(default)]
-  pub env: BTreeMap<String, String>,
-}
-
-impl CustomCheck {
-  pub fn task(&self) -> Task {
-    Task {
-      run: self.run.clone(),
-      description: self.description.clone(),
-      cwd: self.cwd.clone(),
-      env: self.env.clone(),
-    }
+  #[test]
+  fn detailed_task_runs_in_its_cwd_with_env() {
+    let task: Task = toml::from_str::<std::collections::BTreeMap<String, Task>>(
+      "t = { run = \"qmllint *.qml\", cwd = \"qml\", env = { QT_QPA_PLATFORM = \"offscreen\" } }",
+    )
+    .unwrap()
+    .remove("t")
+    .unwrap();
+    let process = task.to_process(std::path::Path::new("/repo"));
+    assert_eq!(process.get_cwd(), Some(std::path::Path::new("/repo/qml")));
+    assert_eq!(
+      process.get_env("QT_QPA_PLATFORM"),
+      Some(std::ffi::OsStr::new("offscreen"))
+    );
   }
 }
