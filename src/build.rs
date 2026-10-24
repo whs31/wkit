@@ -439,7 +439,7 @@ mod tests {
         .to_string()
         .contains(&format!(
           "-B {}",
-          Path::new("build").join("Debug").display()
+          crate::process::quote(&Path::new("build").join("Debug").to_string_lossy())
         ))
     );
 
