@@ -267,7 +267,7 @@ mod tests {
     );
 
     let manifest = Manifest::parse(&detection.render()).unwrap();
-    assert!(manifest.warnings.is_empty());
+    assert_eq!(manifest.warnings, Vec::<String>::new());
     assert!(manifest.has(Language::Cpp) && manifest.has(Language::Rust));
     assert_eq!(manifest.version.unwrap().files.len(), 4);
   }

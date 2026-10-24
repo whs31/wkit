@@ -476,6 +476,7 @@ mod tests {
     }
   }
 
+  #[cfg(unix)]
   fn member<'a>(bytes: &'a [u8], name: &str) -> &'a [u8] {
     let mut offset = 8;
     while offset < bytes.len() {
@@ -490,6 +491,7 @@ mod tests {
     panic!("no member {name}");
   }
 
+  #[cfg(unix)]
   fn names(tar_gz: &[u8]) -> Vec<String> {
     tar::Archive::new(flate2::read::GzDecoder::new(tar_gz))
       .entries()

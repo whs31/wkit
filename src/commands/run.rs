@@ -166,6 +166,7 @@ enum SmokeRun {
 
 impl SmokeRun {
   const POLL: Duration = Duration::from_millis(20);
+  #[cfg(unix)]
   const GRACE: Duration = Duration::from_secs(2);
 
   fn execute(process: &ProcessBuilder, log: &Path, timeout: Duration) -> Result<Self> {
@@ -394,9 +395,9 @@ mod tests {
 
   #[test]
   fn clean_exits_pass_and_output_is_logged() {
-    let (run, log) = run("echo out; echo err >&2", 5000);
+    let (run, log) = run("echo out&& echo err>&2", 5000);
     assert!(run.passed(true), "{run:?}");
-    assert_eq!(log, "out\nerr\n");
+    assert_eq!(log.replace("\r\n", "\n"), "out\nerr\n");
   }
 
   #[test]

@@ -437,7 +437,10 @@ mod tests {
       cmake
         .cmake_configure_command(BuildType::Debug)
         .to_string()
-        .contains("-B build/Debug")
+        .contains(&format!(
+          "-B {}",
+          Path::new("build").join("Debug").display()
+        ))
     );
 
     std::fs::write(

@@ -219,6 +219,7 @@ impl Fixture {
       .join(format!("{path}.git"))
       .display()
       .to_string()
+      .replace('\\', "/")
   }
 
   fn seed(&self, path: &str) -> PathBuf {
@@ -424,7 +425,7 @@ fn add_registers_clones_and_commits_the_workspace_files() {
   committer
     .commit_root(&mut shell, "FEAT: Add extra", &files, false)
     .unwrap();
-  assert!(committer.root_changes(&files).is_empty());
+  assert_eq!(committer.root_changes(&files), Vec::<String>::new());
   assert_eq!(
     Repo::new(&root)
       .query(&["log", "-1", "--format=%s"])

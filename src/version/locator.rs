@@ -271,6 +271,6 @@ mod tests {
     let slots = Locator::pkgbuild(text, Flavor::PkgVer);
     assert_eq!(slots.len(), 2);
     assert_eq!(&text[slots[0].span.clone()], "2.0.0");
-    assert!(Locator::pkgbuild("pkgrel=1\n", Flavor::PkgVer).is_empty());
+    assert_eq!(Locator::pkgbuild("pkgrel=1\n", Flavor::PkgVer), []);
   }
 }

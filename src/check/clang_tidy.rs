@@ -642,12 +642,14 @@ mod tests {
   #[test]
   fn header_filter_matches_project_dirs_only() {
     let tidy = ClangTidy::new(Tool::system("clang-tidy"), ClangTidyCheck::default());
-    let filter = regex::Regex::new(&tidy.header_filter(Path::new("/home/me/my.repo"))).unwrap();
-    assert!(filter.is_match("/home/me/my.repo/include/a.h"));
-    assert!(filter.is_match("/home/me/my.repo/src/x/b.hpp"));
-    assert!(!filter.is_match("/home/me/my.repo/build/gen/a.h"));
-    assert!(!filter.is_match("/home/me/myXrepo/src/a.h"));
-    assert!(!filter.is_match("/usr/include/stdio.h"));
+    let abs = |path: &str| format!("{}{path}", if cfg!(windows) { "C:" } else { "" });
+    let filter =
+      regex::Regex::new(&tidy.header_filter(Path::new(&abs("/home/me/my.repo")))).unwrap();
+    assert!(filter.is_match(&abs("/home/me/my.repo/include/a.h")));
+    assert!(filter.is_match(&abs("/home/me/my.repo/src/x/b.hpp")));
+    assert!(!filter.is_match(&abs("/home/me/my.repo/build/gen/a.h")));
+    assert!(!filter.is_match(&abs("/home/me/myXrepo/src/a.h")));
+    assert!(!filter.is_match(&abs("/usr/include/stdio.h")));
   }
 
   #[test]
@@ -713,7 +715,10 @@ mod tests {
     assert_eq!(found[0].details.len(), 2);
     assert_eq!(found[1].path, Path::new("/abs/a.h"));
     assert_eq!(found[1].details.len(), 2);
-    assert!(Diagnostic::parse_all("error: unknown argument", Path::new("/")).is_empty());
+    assert_eq!(
+      Diagnostic::parse_all("error: unknown argument", Path::new("/")),
+      Vec::<Diagnostic>::new()
+    );
   }
 
   fn run() -> Run {

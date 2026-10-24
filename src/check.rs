@@ -746,7 +746,7 @@ mod tests {
       secrets::scan(&text),
       [(2, "GitHub token"), (4, "private key")]
     );
-    assert!(secrets::scan("ghp_short glpat- AKIA").is_empty());
+    assert_eq!(secrets::scan("ghp_short glpat- AKIA"), []);
   }
 
   #[test]

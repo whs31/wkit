@@ -308,7 +308,7 @@ mod tests {
     )
     .unwrap();
     let current = set.current().unwrap();
-    assert!(set.mismatches(&current).is_empty());
+    assert_eq!(set.mismatches(&current), []);
 
     let next = current.bumped_pre(Bump::Minor, "rc").unwrap();
     let changes = set.changes(&next);

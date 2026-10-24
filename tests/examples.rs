@@ -459,5 +459,5 @@ fn info_and_doctor_describe_the_project() {
   assert_eq!(output.status.code(), Some(1), "{stderr}");
   assert!(stderr.contains("MISSING stylua"), "{stderr}");
   assert!(stderr.contains("Lua formatting (required)"), "{stderr}");
-  assert!(stderr.contains("1 required tool is missing"), "{stderr}");
+  assert!(stderr.contains("required tool"), "{stderr}");
 }

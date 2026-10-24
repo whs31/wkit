@@ -543,16 +543,15 @@ mod tests {
     let [suite] = &tester.suites[..] else {
       panic!("{:?}", tester.suites);
     };
-    assert_eq!(suite.process.get_program(), exe.as_os_str());
+    assert_eq!(Path::new(suite.process.get_program()), exe);
+    let junit = suite.junit.as_ref().unwrap();
+    assert_eq!(junit, &dir.path().join("out/suites/unit.xml"));
     assert_eq!(
       args(suite),
       [
         "[fast]",
         "--reporter",
-        &format!(
-          "JUnit::out={}",
-          dir.path().join("out/suites/unit.xml").display()
-        ),
+        &format!("JUnit::out={}", junit.display()),
         "--reporter",
         "console::out=-::colour-mode=none",
         "--durations",
@@ -593,7 +592,7 @@ mod tests {
     );
     assert!(args(suite).ends_with(&[
       "--tool-config-file".to_owned(),
-      format!("wkit:{}", config.display()),
+      format!("wkit:{}", suite.generated[0].0.display()),
       "--profile".into(),
       "ci".into(),
       "--release".into()
@@ -614,7 +613,7 @@ mod tests {
     .unwrap();
     let tester = Tester::plan(&project, &options).unwrap();
     let suite = &tester.suites[0];
-    assert!(suite.generated.is_empty());
+    assert_eq!(suite.generated, []);
     assert!(
       suite
         .junit

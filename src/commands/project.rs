@@ -593,7 +593,7 @@ mod tests {
     );
     assert_eq!(expand("docs/graph.html"), ["docs/graph.html"]);
     assert_eq!(expand("*/z"), ["cmake-build-release/z"]);
-    assert!(expand("target").is_empty());
+    assert_eq!(expand("target"), Vec::<String>::new());
   }
 
   #[test]

@@ -681,7 +681,7 @@ mod tests {
     assert_eq!(missing.run(), Err("not found".into()));
     let failing = Probe::new(
       "sh",
-      ProcessBuilder::shell("echo 'error: no such command' >&2; exit 101"),
+      ProcessBuilder::shell("echo error: no such command>&2&& exit 101"),
       Need::Required,
       "",
     );

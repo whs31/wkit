@@ -155,6 +155,7 @@ impl FileMapping {
 pub struct FileMode(pub u32);
 
 impl FileMode {
+  #[cfg(unix)]
   pub const EXECUTABLE: Self = Self(0o755);
   pub const REGULAR: Self = Self(0o644);
 }

@@ -459,10 +459,9 @@ mod tests {
       Kind::ClangFormat.violations(root, clang),
       [PathBuf::from("src/a.cpp"), "src/dir with space/b.h".into()]
     );
-    assert!(
-      Kind::ClangFormat
-        .violations(root, "error: unknown argument\n")
-        .is_empty()
+    assert_eq!(
+      Kind::ClangFormat.violations(root, "error: unknown argument\n"),
+      Vec::<PathBuf>::new()
     );
     let black = "would reformat /work/p/scripts/a.py\nwould reformat b.py\nOh no! 💥 💔 💥\n2 files would be reformatted.\n";
     assert_eq!(
@@ -474,7 +473,10 @@ mod tests {
       Kind::Stylua.violations(root, stylua),
       [PathBuf::from("src/meta.lua")]
     );
-    assert!(Kind::Qmlformat.violations(root, black).is_empty());
+    assert_eq!(
+      Kind::Qmlformat.violations(root, black),
+      Vec::<PathBuf>::new()
+    );
   }
 
   #[test]

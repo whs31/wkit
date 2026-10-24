@@ -591,7 +591,7 @@ mod tests {
         "4/4 tests/geodesy_tests"
       ]
     );
-    assert!(log.errors.is_empty());
+    assert_eq!(log.errors, Vec::<String>::new());
   }
 
   #[test]
