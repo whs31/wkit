@@ -54,6 +54,11 @@ impl Failure {
               .downcast_ref::<wkit_test::Error>()
               .map(wkit_test::Error::exit_code)
           })
+          .or_else(|| {
+            cause
+              .downcast_ref::<wkit_package::Error>()
+              .map(wkit_package::Error::exit_code)
+          })
           .flatten()
       })
       .unwrap_or(Self::INTERNAL)

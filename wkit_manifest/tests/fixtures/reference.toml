@@ -134,6 +134,45 @@ build-dir = "build/{build-type}"
 [clean]
 extra = ["run/out", "*.pkg.tar.zst"]      # appended to the defaults; `paths` replaces them
 
+[package]                                 # `wkit package arch|deb|windows`
+name = "mms"                              # default: project name
+set-option = "deployment_set"             # Conan option chosen by `--set`; other sets package as `<name>-<set>`
+output = "build/package"                  # default: build/package (target/package for cargo)
+license = "LICENSE"                       # default: LICENSE when present
+exclude = ["include", "lib/cmake", "lib/pkgconfig"]  # removed from the `cmake --install` tree
+files = [{ from = "scripts/register.sh", to = "/usr/share/mms/scripts/", mode = "755" }]
+stage = ["bash", "scripts/verify-stage.sh"]  # runs on the staged tree; sees WKIT_STAGE_DIR, WKIT_PACKAGE_*
+
+[package.deb]                             # native projects; cargo projects use cargo-deb
+maintainer = "whs31 <whs31@github.io>"
+description = "MMS ground control"        # default: project.description
+section = "utils"
+priority = "optional"
+architecture = "amd64"                    # default: the host architecture
+depends = ["libc6 (>= 2.28)", "rmms-qt6 (>= 6.11.1)"]
+breaks = ["gcs2"]
+replaces = ["gcs2"]
+prefix = "/usr"                           # where the install tree lands
+scripts = "packaging/debian"              # preinst/postinst/prerm/postrm/triggers when present
+
+[package.arch]
+dir = "packaging/arch"                    # default: packaging/arch or pkg/arch, whichever has a PKGBUILD
+
+[package.windows]
+generator = "nsis"                        # nsis | wix | zip, through CPack
+icon = "assets/icon.ico"
+
+[install]                                 # `wkit install` when the distro has no package for the project
+prefix = "/opt/mms"                       # `cmake --install` target
+files = [
+  { from = "target/release/relay{exe}", to = "/usr/bin/relay", mode = "755" },
+  { from = "config/relay.toml", to = "/etc/relay/relay.toml", config = true },  # kept when present
+  { from = "lua/*.lua", to = "/etc/relay/lua/" },
+]
+tmpfiles = ["packaging/relay.tmpfiles"]   # installed to /usr/lib/tmpfiles.d/ and applied
+services = ["systemd/relay.service"]      # installed, reloaded and enabled
+remove = ["/usr/share/pixmaps/relay.png"] # legacy paths `wkit uninstall` also removes
+
 [scripts]
 graph = "conan graph info . --format=html > docs/graph.html"
 golden = { run = ["bash", "scripts/update-golden.sh"], description = "Regenerate golden files" }

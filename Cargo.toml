@@ -7,6 +7,7 @@ members = [
     "wkit_core",
     "wkit_manifest",
     "wkit_fmt",
+    "wkit_package",
     "wkit_test",
     "wkit_version",
 ]
@@ -27,6 +28,7 @@ wkit_check = { path = "wkit_check", version = "0.1.0" }
 wkit_core = { path = "wkit_core", version = "0.1.0" }
 wkit_fmt = { path = "wkit_fmt", version = "0.1.0" }
 wkit_manifest = { path = "wkit_manifest", version = "0.1.0" }
+wkit_package = { path = "wkit_package", version = "0.1.0" }
 wkit_test = { path = "wkit_test", version = "0.1.0" }
 wkit_version = { path = "wkit_version", version = "0.1.0" }
 
@@ -35,6 +37,7 @@ anstyle = "1"
 anyhow = "1"
 clap = { version = "4.5", features = ["derive", "env", "string", "wrap_help"] }
 derive_more = { version = "2", features = ["display"] }
+flate2 = "1"
 globset = "0.4"
 ignore = "0.4"
 indicatif = "0.18"
@@ -44,6 +47,7 @@ semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 serde_ignored = "0.1"
 serde_json = "1"
+tar = { version = "0.4", default-features = false }
 thiserror = "2"
 toml = "1"
 ureq = "3"

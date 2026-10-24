@@ -18,3 +18,4 @@ target_link_libraries(crc8_tests PRIVATE crc8)
 add_test(NAME crc8_vectors COMMAND crc8_tests)
 
 install(TARGETS crc8sum)
+include(CPack)

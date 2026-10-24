@@ -7,7 +7,7 @@ pkgdesc="Mock geodesy library for wkit tests"
 arch=('x86_64')
 license=('MIT')
 depends=('spdlog')
-makedepends=('cmake' 'conan')
+makedepends=('cmake')  # Conan comes from the build host
 source=("${pkgname}-${_source_version}.tar.gz")
 sha256sums=('SKIP')
 

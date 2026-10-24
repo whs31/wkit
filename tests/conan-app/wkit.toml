@@ -13,6 +13,13 @@ name = "groundlink"
 path = "build/{build-type}/groundlink{exe}"
 args = ["--config", "config/dev.json"]
 
+[package]
+set-option = "deployment_set"
+
+[package.deb]
+maintainer = "wkit tests <wkit@example.com>"
+depends = ["zlib1g"]
+
 [[check.custom]]
 name = "plugin-meta"
 description = "MMS plugin metadata is complete"

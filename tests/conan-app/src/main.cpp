@@ -5,7 +5,7 @@
 #include "config.h"
 
 int main(int argc, char** argv) {
-  CLI::App app{"groundlink " GROUNDLINK_VERSION};
+  CLI::App app{"groundlink " GROUNDLINK_VERSION " (" GROUNDLINK_DEPLOYMENT_SET ")"};
   std::string path = "config/dev.json";
   app.add_option("-c,--config", path, "Configuration file");
   CLI11_PARSE(app, argc, argv);

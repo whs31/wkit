@@ -20,6 +20,7 @@ wkit_check.workspace = true
 wkit_core.workspace = true
 wkit_fmt.workspace = true
 wkit_manifest.workspace = true
+wkit_package.workspace = true
 wkit_test.workspace = true
 wkit_version.workspace = true
 anyhow.workspace = true

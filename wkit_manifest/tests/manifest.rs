@@ -7,7 +7,8 @@ use wkit_core::{
   version::{Flavor, Scheme},
 };
 use wkit_manifest::{
-  Command, MANIFEST_FILE, Manifest, ManifestError, Project, TestRunner, VersionFileKind,
+  Command, FileMode, MANIFEST_FILE, Manifest, ManifestError, PackageSection, Project, TestRunner,
+  VersionFileKind, package::WindowsGenerator,
 };
 
 fn fixture(name: &str) -> PathBuf {
@@ -81,6 +82,17 @@ fn reference_manifest_is_complete_and_valid() {
     Some("Regenerate golden files")
   );
   assert!(matches!(m.scripts["graph"].run, Command::Shell(_)));
+
+  assert_eq!(m.package.set_option.as_deref(), Some("deployment_set"));
+  assert_eq!(m.package.files[0].mode, Some(FileMode(0o755)));
+  let deb = m.package.deb.as_ref().unwrap();
+  assert_eq!(
+    deb.relations()[0].1,
+    ["libc6 (>= 2.28)", "rmms-qt6 (>= 6.11.1)"]
+  );
+  assert_eq!(m.package.windows.generator, WindowsGenerator::Nsis);
+  assert!(m.install.files[1].config && m.install.files[2].is_glob());
+  assert_eq!(m.install.services.len(), 1);
 }
 
 #[test]
@@ -96,6 +108,8 @@ fn minimal_manifest_gets_language_driven_defaults() {
   assert_eq!(m.build.conan.test_option, None);
   assert!(m.build.link_compile_commands && m.conan.sync.remote.is_none());
   assert!(m.version.is_none() && m.bins.is_empty() && m.default_bin().is_none());
+  assert!(m.package.deb.is_none() && m.install.is_empty());
+  assert_eq!(m.package.exclude, PackageSection::DEFAULT_EXCLUDE);
   let clean = m.clean.effective_paths(m.languages());
   assert!(clean.contains(&"build".to_owned()) && !clean.contains(&"target".to_owned()));
 }
@@ -170,6 +184,14 @@ fn validation_collects_every_problem() {
     [[check.custom]]
     name = "clippy"
     run = "true"
+
+    [package]
+    set-option = ""
+    files = [{ from = "a/*.so", to = "/usr/lib", config = true }]
+
+    [install]
+    prefix = "opt/x"
+    files = [{ from = "a", to = "usr/bin/a" }]
     "#,
   );
   let expected = [
@@ -186,6 +208,11 @@ fn validation_collects_every_problem() {
     "needs a `binary`",
     "duplicate custom check `x`",
     "clashes with the built-in check",
+    "`package.set-option` must not be empty",
+    "so `to` must end with `/`",
+    "`config` only applies to `[install] files`",
+    "`install.prefix` must be an absolute path",
+    "`usr/bin/a` must be an absolute path",
   ];
   for needle in expected {
     assert!(

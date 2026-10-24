@@ -6,7 +6,7 @@ pkgdesc="Mock calendar-versioned application for wkit tests"
 arch=('x86_64')
 license=('MIT')
 depends=('fmt')
-makedepends=('cmake' 'conan')
+makedepends=('cmake')  # Conan comes from the build host
 source=("${pkgname}-${pkgver}.tar.gz")
 sha256sums=('SKIP')
 

@@ -60,7 +60,10 @@ impl<'a> Conan<'a> {
     if self.options.build_type.is_some() {
       conan = conan.arg("-s").arg(format!("build_type={build_type}"));
     }
-    conan = conan.args(test_options).args(config.conf_args());
+    conan = conan
+      .args(test_options)
+      .args(self.option_args())
+      .args(config.conf_args());
     if let Some(jobs) = self.options.jobs {
       conan = conan.arg("-c").arg(format!("tools.build:jobs={jobs}"));
     }
@@ -90,6 +93,7 @@ impl<'a> Conan<'a> {
       conan = conan.arg("--no-remote");
     }
     conan
+      .args(self.option_args())
       .args(self.config().conf_args())
       .args(["--format", format, "--out-file"])
       .arg(output)
@@ -177,6 +181,11 @@ impl<'a> Conan<'a> {
     Ok(())
   }
 
+  pub fn default_option(&self, name: &str) -> Result<Option<String>> {
+    let recipe = self.query(&["inspect", "."], &[], "could not inspect `conanfile.py`")?;
+    Ok(recipe["options"][name].as_str().map(ToOwned::to_owned))
+  }
+
   pub fn log_path(&self) -> std::path::PathBuf {
     self.project.join("build").join("wkit-build.log")
   }
@@ -211,6 +220,15 @@ impl<'a> Conan<'a> {
     }
     args.extend(config.setting_args());
     args
+  }
+
+  fn option_args(&self) -> Vec<String> {
+    self
+      .options
+      .conan_options
+      .iter()
+      .flat_map(|option| ["-o".to_owned(), format!("&:{option}")])
+      .collect()
   }
 
   fn reporter<'s>(&self, shell: &'s mut Shell, build_type: BuildType) -> Result<Reporter<'s>> {
@@ -289,6 +307,7 @@ mod tests {
       jobs: Some(4),
       offline: true,
       extra: vec!["--lockfile-partial".into()],
+      conan_options: vec!["deployment_set=field".into()],
       ..BuildOptions::default()
     };
     let conan = Conan::new(&project, &options);
@@ -299,7 +318,7 @@ mod tests {
       conan
         .command("build", BuildType::Release, &test)
         .to_string(),
-      "conan build . -pr:h clang -pr:b gcc -s compiler.cppstd=20 -s build_type=Release -o '&:test=True' -c tools.cmake.cmaketoolchain:generator=Ninja -c tools.build:jobs=4 --build=missing --no-remote -vwarning --lockfile-partial"
+      "conan build . -pr:h clang -pr:b gcc -s compiler.cppstd=20 -s build_type=Release -o '&:test=True' -o '&:deployment_set=field' -c tools.cmake.cmaketoolchain:generator=Ninja -c tools.build:jobs=4 --build=missing --no-remote -vwarning --lockfile-partial"
     );
   }
 

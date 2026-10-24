@@ -12,10 +12,12 @@ class GroundlinkRecipe(ConanFile):
   options = {
     "test": [True, False],
     "with_compression": [True, False],
+    "deployment_set": ["basic", "field"],
   }
   default_options = {
     "test": False,
     "with_compression": True,
+    "deployment_set": "basic",
   }
   exports_sources = "CMakeLists.txt", "src/*", "tests/*"
 
@@ -37,6 +39,7 @@ class GroundlinkRecipe(ConanFile):
     toolchain = CMakeToolchain(self)
     toolchain.cache_variables["BUILD_TESTING"] = bool(self.options.test)
     toolchain.cache_variables["GROUNDLINK_WITH_COMPRESSION"] = bool(self.options.with_compression)
+    toolchain.cache_variables["GROUNDLINK_DEPLOYMENT_SET"] = str(self.options.deployment_set)
     toolchain.generate()
 
   def build(self):

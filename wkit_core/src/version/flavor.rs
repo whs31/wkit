@@ -7,6 +7,8 @@ pub enum Flavor {
   PkgVer,
 
   Numeric,
+
+  Debian,
 }
 
 impl Flavor {
@@ -14,7 +16,8 @@ impl Flavor {
     match self {
       Self::Full => v.to_string(),
       Self::Numeric => format!("{}.{}.{}", v.major, v.minor, v.patch),
-      Self::PkgVer if v.pre.is_empty() => Self::Numeric.render_semver(v),
+      Self::PkgVer | Self::Debian if v.pre.is_empty() => Self::Numeric.render_semver(v),
+      Self::Debian => format!("{}~{}", Self::Numeric.render_semver(v), v.pre),
       Self::PkgVer => {
         let core = Self::Numeric.render_semver(v);
         let pre: String = v.pre.as_str().chars().filter(|&c| c != '-').collect();
@@ -43,6 +46,12 @@ mod tests {
     assert_eq!(render(Flavor::PkgVer, "1.2.3-alpha-2"), "1.2.3alpha2");
     assert_eq!(render(Flavor::PkgVer, "1.2.3-1"), "1.2.3pre1");
     assert_eq!(render(Flavor::PkgVer, "1.2.3-beta+build.7"), "1.2.3beta");
+  }
+
+  #[test]
+  fn debian_sorts_prereleases_first_with_a_tilde() {
+    assert_eq!(render(Flavor::Debian, "1.2.3"), "1.2.3");
+    assert_eq!(render(Flavor::Debian, "1.2.3-rc.1+build.7"), "1.2.3~rc.1");
   }
 
   #[test]

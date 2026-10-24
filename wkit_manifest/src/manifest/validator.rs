@@ -1,7 +1,7 @@
 use wkit_core::{Language, detect::BuildSystem, version::Scheme};
 
 use super::Manifest;
-use crate::{CheckSection, TestRunner, VersionFileKind, VersionSection};
+use crate::{CheckSection, FileMapping, TestRunner, VersionFileKind, VersionSection};
 
 pub(super) struct Validator<'a> {
   manifest: &'a Manifest,
@@ -23,6 +23,7 @@ impl<'a> Validator<'a> {
     validator.build();
     validator.tests();
     validator.tasks();
+    validator.packaging();
     validator.problems
   }
 
@@ -207,6 +208,49 @@ impl<'a> Validator<'a> {
           "script name `{name}` must be non-empty and contain no whitespace"
         ));
       }
+    }
+  }
+
+  fn packaging(&mut self) {
+    let package = &self.manifest.package;
+    let install = &self.manifest.install;
+    for (value, field) in [
+      (&package.name, "package.name"),
+      (&package.set_option, "package.set-option"),
+    ] {
+      if value.as_deref().is_some_and(|v| v.trim().is_empty()) {
+        self.report(format!("`{field}` must not be empty"));
+      }
+    }
+    for (files, table) in [(&package.files, "package"), (&install.files, "install")] {
+      for file in files {
+        self.file_mapping(file, table);
+      }
+    }
+    if let Some(prefix) = &install.prefix
+      && !prefix.has_root()
+    {
+      self.report("`install.prefix` must be an absolute path");
+    }
+  }
+
+  fn file_mapping(&mut self, file: &FileMapping, table: &str) {
+    let from = &file.from;
+    if !file.to.starts_with('/') {
+      self.report(format!(
+        "`[{table}] files`: `{}` must be an absolute path",
+        file.to
+      ));
+    }
+    if file.is_glob() && !file.targets_dir() {
+      self.report(format!(
+        "`[{table}] files`: `{from}` matches several files, so `to` must end with `/`"
+      ));
+    }
+    if file.config && table != "install" {
+      self.report(format!(
+        "`[{table}] files`: `config` only applies to `[install] files`; packages mark files under /etc as configuration"
+      ));
     }
   }
 }

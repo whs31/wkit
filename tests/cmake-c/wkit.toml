@@ -17,3 +17,17 @@ args = ["hello"]
 
 [[test.suite]]
 runner = "ctest"
+
+[package]
+files = [{ from = "README.md", to = "/usr/share/doc/crc8/" }]
+
+[package.deb]
+maintainer = "wkit tests <wkit@example.com>"
+section = "utils"
+depends = ["libc6"]
+
+[package.windows]
+generator = "zip"
+
+[install]
+files = [{ from = "build/default/crc8sum{exe}", to = "/usr/local/bin/crc8sum", mode = "755" }]

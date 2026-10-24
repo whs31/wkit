@@ -42,7 +42,7 @@ On Windows, 60+ of these files exist only as `.ps1` twins of a `.sh` script. Bui
 | `wkit_check`    | M2     | clippy, clang-tidy (compile db discovery, gcc-only flag stripping, parallel, result cache), custom checks, summary table                                                                                                                                                       |
 | `wkit_test`     | M2     | cargo/nextest/ctest/catch2 runners, JUnit aggregation                                                                                                                                                                                                                          |
 | `wkit_build`    | M3     | conan (single and workspace), plain CMake (presets or `build/<type>`) and cargo drivers, build type from the Conan profile, conan/CMake/ninja output translated to cargo-style lines and a progress bar                                                                        |
-| `wkit_package`  | M4     | arch/deb/windows packaging, install/uninstall                                                                                                                                                                                                                                  |
+| `wkit_package`  | M4     | arch (makepkg + git tarball), deb (own writer or cargo-deb), windows (CPack), apt/pacman/file installs                                                                                                                                                                         |
 | `wkit_ws`       | M5     | multi-repo workspace management (`workspace.toml`/`workspace.lock` compatible)                                                                                                                                                                                                 |
 | `wkit`          | ✅ M1  | the binary: clap CLI, command dispatch, `[scripts]`, `wkit-<name>` external subcommands, `self-update`, `init`, `clean`                                                                                                                                                        |
 
@@ -93,19 +93,23 @@ Enough to delete `check.py`, `clang_tools.py`, `check_versions.py` and `test.sh`
 - [x] `compile_commands.json` symlink to the active build dir after `build`/`configure` (`build.link-compile-commands`, single-package projects; real files are left alone)
 - [x] `wkit clean` also cleans every Conan workspace package (`conanws.yml`/`conanws.py`)
 
-### M4: packaging and installation
-- [ ] `wkit package arch`: tarball from `git ls-files --cached --others --exclude-standard` (skipping package outputs), check versions against PKGBUILD, `makepkg --syncdeps --cleanbuild --force`, `PKGDEST` support
-- [ ] `wkit package deb`: cargo-deb, or conan build + `cmake --install` + a declarative control file (`[package.deb]`) instead of `package-deb.sh`
-- [ ] `wkit package windows`: NSIS/MSI from an install tree (corona, ics2)
-- [ ] `wkit install [--set <deployment>]` / `wkit uninstall`: detect debian-like vs arch-like (`ID`, `ID_LIKE`), build the package, install with apt/pacman. Otherwise `[install]` file mappings for `sudo install`, preserving existing configs, `systemd-tmpfiles`, `systemctl daemon-reload`
+### M4: packaging and installation ✅
+- [x] `wkit package arch [--set S] [-o DIR] [-- makepkg args]`: tarball from `git ls-files --cached --others --exclude-standard` (skipping package outputs), check versions against PKGBUILD, `makepkg --syncdeps --cleanbuild --clean --force`, `PKGDEST` support
+  - Tarball names, `pkgver` and `pkgname` come from `makepkg --printsrcinfo`, so the PKGBUILD stays the only source. The tarball is removed after the build
+  - Missing `depends`/`makedepends` are installed through `sudo pacman -S --needed --asdeps` up front, so the sudo prompt stays visible
+- [x] `wkit package deb [--set S] [-o DIR]`: cargo-deb (`--no-build` after wkit's release build), or conan/CMake build + `cmake --install` + a declarative control file (`[package.deb]`) instead of `package-deb.sh`
+  - The `.deb` is written by wkit (ar + gzip tarballs, root-owned, `/etc` files as conffiles); `dpkg-deb` is not needed. Maintainer scripts come from `packaging/debian/`
+  - Prereleases use `~` (`1.2.3~rc.1`) so they sort before the release
+- [x] `wkit package windows`: NSIS/WiX/zip from the install tree through CPack (`include(CPack)` in CMakeLists.txt)
+- [x] `wkit install [--set <deployment>] [--files] [--dry-run]` / `wkit uninstall`: detect debian-like vs arch-like (`ID`, `ID_LIKE`), build the package, install with apt/pacman. Otherwise `[install]` file mappings for `sudo install`, preserving existing configs, `systemd-tmpfiles`, `systemctl daemon-reload`
+- [x] Shared `[package]` settings: `name`, `exclude` (defaults drop `include/`, `lib/cmake`, `lib/pkgconfig`), extra `files`, `license`, and a `stage` hook that can patch or verify the staged tree (rpaths, forbidden libraries) with `WKIT_STAGE_DIR`/`WKIT_PACKAGE_*` set
+- [x] Packages build in Release unless `--build-type` says otherwise. `--set` passes `-o &:<package.set-option>=<set>` to Conan; sets other than the conanfile default are packaged as `<name>-<set>`
 
 ### M5: workspace and extras
 - [ ] `wkit smoke <bin> [--runs N --interval S --timeout S]`: repeated launch stability test
 - [ ] `wkit doctor`: uv, conan, cmake, ninja, nightly toolchain, cargo-nextest, cargo-deb, makepkg, pinned tools resolvable
-- [ ] `wkit hooks install`: git pre-commit hook running `wkit fmt --check` (replaces `.pre-commit-config.yaml` pin duplication)
 - [ ] `wkit info`: host triple, OS/distro, project summary (`sysinfo` recipes)
 - [ ] Extra formatters/linters behind `[format.<name>]`: qmlformat (`.qmlformat.ini`), qmllint, black, stylua
-- [ ] `wkit new <template>`: absorb `create-mms-project` (in future maybe)
 - [ ] MMS extension: `meta.lua` validation (uuid, dependency ranges), plugin version ⇔ conanfile
 
 ## Cross-cutting rules

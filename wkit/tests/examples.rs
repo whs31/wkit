@@ -242,3 +242,61 @@ fn clean_removes_workspace_package_outputs() {
   }
   assert!(dir.path().join("core/conanfile.py").is_file());
 }
+
+#[test]
+fn cmake_example_packages_and_plans_an_install() {
+  if which::which("cmake").is_err() {
+    return;
+  }
+  let example = examples()
+    .into_iter()
+    .find(|e| e.ends_with("cmake-c"))
+    .unwrap();
+  let dir = tempfile::tempdir().unwrap();
+  copy(&example, dir.path());
+  let manifest = dir.path().join("wkit.toml");
+  let toml = std::fs::read_to_string(&manifest).unwrap().replace(
+    "[package]\n",
+    "[package]\nstage = 'echo \"$WKIT_PACKAGE_FORMAT $WKIT_PACKAGE_VERSION\" > \"$WKIT_STAGE_DIR/usr/share/doc/crc8/stamp\"'\n",
+  );
+  std::fs::write(&manifest, toml).unwrap();
+
+  let (_, stderr) = succeed(dir.path(), &["package", "deb"]);
+  assert!(stderr.contains("Packaging crc8 v0.3.0 (deb)"), "{stderr}");
+  let deb = dir.path().join("build/package/crc8_0.3.0_amd64.deb");
+  assert!(std::fs::read(&deb).unwrap().starts_with(b"!<arch>\n"));
+  let stamp = dir
+    .path()
+    .join("build/stage/deb/crc8/usr/share/doc/crc8/stamp");
+  assert_eq!(std::fs::read_to_string(stamp).unwrap(), "deb 0.3.0\n");
+
+  let (_, stderr) = succeed(dir.path(), &["install", "--files", "--dry-run"]);
+  assert!(stderr.contains("Would run"), "{stderr}");
+  assert!(
+    stderr.contains("install -Dm0755") && stderr.contains("/usr/local/bin/crc8sum"),
+    "{stderr}"
+  );
+  let (_, stderr) = succeed(dir.path(), &["uninstall", "--dry-run"]);
+  assert!(stderr.contains("nothing to remove"), "{stderr}");
+
+  if which::which("cpack").is_ok() {
+    let (_, stderr) = succeed(dir.path(), &["package", "windows"]);
+    assert!(stderr.contains("crc8-0.3.0-win64.zip"), "{stderr}");
+    assert!(!dir.path().join("build/package/_CPack_Packages").exists());
+  }
+}
+
+#[test]
+fn packaging_without_a_maintainer_explains_the_fix() {
+  let example = examples()
+    .into_iter()
+    .find(|e| e.ends_with("conan-lib"))
+    .unwrap();
+  let output = wkit(&example, &["package", "deb"]);
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  assert!(!output.status.success());
+  assert!(
+    stderr.contains("help: set `package.deb.maintainer"),
+    "{stderr}"
+  );
+}

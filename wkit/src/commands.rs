@@ -10,16 +10,19 @@ mod external;
 mod fmt;
 mod graph;
 mod init;
+mod install;
+mod package;
 mod run;
 mod run_script;
 mod self_update;
 mod test;
+mod uninstall;
 
 use self::{
   build::BuildArgs, bump::BumpArgs, check::CheckArgs, clean::CleanArgs, conan::ConanArgs,
   configure::ConfigureArgs, create::CreateArgs, external::External, fmt::FmtArgs, graph::GraphArgs,
-  init::InitArgs, run::RunArgs, run_script::RunScriptArgs, self_update::SelfUpdateArgs,
-  test::TestArgs,
+  init::InitArgs, install::InstallArgs, package::PackageArgs, run::RunArgs,
+  run_script::RunScriptArgs, self_update::SelfUpdateArgs, test::TestArgs, uninstall::UninstallArgs,
 };
 use crate::context::Context;
 
@@ -60,6 +63,16 @@ pub enum Command {
   #[command(subcommand_value_name = "COMMAND")]
   Conan(ConanArgs),
 
+  /// Build an Arch, Debian or Windows package
+  #[command(subcommand_value_name = "FORMAT")]
+  Package(PackageArgs),
+
+  /// Build and install the project system-wide (apt, pacman or `[install]` files)
+  Install(InstallArgs),
+
+  /// Remove what `wkit install` installed
+  Uninstall(UninstallArgs),
+
   /// Run a script from `[scripts]`
   #[command(visible_alias = "x")]
   RunScript(RunScriptArgs),
@@ -88,6 +101,9 @@ impl Command {
       Self::Create(args) => args.run(ctx),
       Self::Graph(args) => args.run(ctx),
       Self::Conan(args) => args.run(ctx),
+      Self::Package(args) => args.run(ctx),
+      Self::Install(args) => args.run(ctx),
+      Self::Uninstall(args) => args.run(ctx),
       Self::RunScript(args) => args.run(ctx),
       Self::SelfUpdate(args) => args.run(ctx),
       Self::Init(args) => args.run(ctx),

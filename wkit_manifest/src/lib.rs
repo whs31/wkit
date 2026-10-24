@@ -7,6 +7,8 @@ pub mod clean;
 pub mod conan;
 pub mod error;
 pub mod format;
+pub mod install;
+pub mod package;
 pub mod project;
 pub mod task;
 pub mod test;
@@ -20,7 +22,9 @@ pub use self::{
   conan::ConanSection,
   error::ManifestError,
   format::FormatSection,
+  install::InstallSection,
   manifest::{Manifest, Parsed},
+  package::{FileMapping, FileMode, PackageSection},
   project::{Project, ProjectSection},
   task::{Command, CustomCheck, Task},
   test::{TestRunner, TestSection, TestSuite},

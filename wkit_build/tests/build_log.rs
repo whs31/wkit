@@ -236,3 +236,26 @@ fn create_treats_the_exported_recipe_as_the_root() {
     ]
   );
 }
+
+#[test]
+fn make_progress_without_work_is_not_compiling() {
+  let mut log = BuildLog::new(PackageRef::new("crc8", None));
+  log.start_build();
+  let events: Vec<_> = [
+    "[ 33%] Built target crc8",
+    "[ 66%] Built target crc8sum",
+    "[100%] Built target crc8_tests",
+  ]
+  .into_iter()
+  .flat_map(|line| log.feed(line))
+  .collect();
+  assert_eq!(events, []);
+  let events = log.feed("[ 50%] Building C object CMakeFiles/crc8.dir/src/crc8.c.o");
+  assert!(
+    matches!(
+      events[..],
+      [Event::Compiling(_), Event::Step { current: 50, .. }]
+    ),
+    "{events:?}"
+  );
+}

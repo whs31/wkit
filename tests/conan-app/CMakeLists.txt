@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(GROUNDLINK_WITH_COMPRESSION "Compress telemetry dumps" ON)
+set(GROUNDLINK_DEPLOYMENT_SET "basic" CACHE STRING "Deployment set baked into the build")
 
 include(CTest)
 
@@ -16,7 +17,10 @@ find_package(nlohmann_json REQUIRED)
 add_library(groundlink_core STATIC src/config.cpp)
 target_include_directories(groundlink_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(groundlink_core PUBLIC nlohmann_json::nlohmann_json)
-target_compile_definitions(groundlink_core PUBLIC GROUNDLINK_VERSION="${PROJECT_VERSION}")
+target_compile_definitions(groundlink_core PUBLIC
+  GROUNDLINK_VERSION="${PROJECT_VERSION}"
+  GROUNDLINK_DEPLOYMENT_SET="${GROUNDLINK_DEPLOYMENT_SET}"
+)
 
 if (GROUNDLINK_WITH_COMPRESSION)
   find_package(ZLIB REQUIRED)

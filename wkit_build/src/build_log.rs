@@ -149,8 +149,10 @@ impl BuildLog {
       let total = c["total"].parse().unwrap_or_default();
       self.step(current, total, patterns.target(&c["description"]), events);
     } else if let Some(c) = patterns.make_step.captures(line) {
-      let percent = c["percent"].parse().unwrap_or_default();
-      self.step(percent, 100, patterns.target(&c["description"]), events);
+      if !c["description"].starts_with("Built target ") {
+        let percent = c["percent"].parse().unwrap_or_default();
+        self.step(percent, 100, patterns.target(&c["description"]), events);
+      }
     } else if line.starts_with("FAILED: ") {
       self.skip_next = true;
     } else if !Self::is_chatter(line) && self.building {
