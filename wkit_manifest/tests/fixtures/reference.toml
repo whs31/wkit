@@ -1,0 +1,132 @@
+# Reference wkit.toml: every section and key, with defaults noted.
+# Only [project].languages is required.
+
+[project]
+name = "fallback-points"                  # default: directory name
+description = "Emergency landing points"
+languages = ["cpp", "rust"]               # "c", "cpp" (alias "c++"), "rust"
+default-run = "mms"                       # like cargo's package.default-run
+wkit = ">=0.1"                            # minimal wkit version for this manifest
+
+[version]
+scheme = "semver"                         # "semver" (default) | "calver" (YYYY.MM.DD[.N])
+source = "conanfile.py"                   # reference file; default: first entry of `files`
+files = [
+  "conanfile.py",                         # kind inferred from the file name
+  "CMakeLists.txt",                       # project(... VERSION) -> numeric flavor (no prerelease)
+  "Cargo.toml",                           # [workspace.package] or [package]; Cargo.lock follows
+  "packaging/arch/PKGBUILD",              # pkgver without dashes, _source_version keeps the full one
+  "src/plugin/assets/meta.lua",           # mms.Version.parse("x") or version = "x"
+  { path = "include/radar/version.h", pattern = '#define GKT_VERSION_STRING "(?<version>[^"]*)"' },
+  { path = "docs/VERSION", kind = "regex", pattern = '^(\S+)$', flavor = "numeric" },
+]
+
+[tools]                                   # pinned through `uv tool run`; defaults exist for clang-*
+clang-format = "23.1.3"
+clang-tidy = { version = "22.1.8" }
+black = { package = "black", version = "25.9.0" }
+qmllint = "system"                        # whatever is in PATH
+run-clang-tidy = { path = "tools/run-clang-tidy" }
+
+[format.rust]
+enabled = true                            # default: Rust in languages
+channel = "nightly"                       # default: nightly iff rustfmt.toml has unstable_features = true
+args = []
+
+[format.cpp]
+enabled = true                            # default: C or C++ in languages
+extensions = ["c", "cc", "cpp", "cxx", "h", "hh", "hpp", "hxx", "cu"]
+include = []                              # gitignore-style globs; empty = whole tree
+exclude = ["/build/", "/vendor/", "/packaging/", "/cmake-build-*/"]
+
+[check]
+format = true                             # run formatters in check mode
+versions = true                           # every version file must agree
+
+[check.clippy]
+toolchain = "stable"
+all-targets = true
+deny-warnings = true
+features = ["fake"]
+all-features = false
+args = []
+
+[check.clang-tidy]
+build-dir = "build/RelWithDebInfo"        # default: newest build/*/compile_commands.json
+dirs = ["src", "tests"]                   # translation units and headers to analyze
+strip-flags = ["-mno-direct-extern-access"]
+warnings-as-errors = true
+cache = true
+
+[[check.custom]]
+name = "plugin-meta"
+description = "MMS plugin metadata is valid"
+run = ["python3", "scripts/check_meta.py"]
+
+[[check.custom]]
+name = "qml"
+run = "qmllint -I build/Release qml/*.qml"
+cwd = "src/plugin"
+env = { QT_QPA_PLATFORM = "offscreen" }
+
+[build]
+system = "conan"                          # default: conanfile.py > Cargo.toml > CMakeLists.txt
+build-type = "RelWithDebInfo"             # Debug (default) | Release | RelWithDebInfo | MinSizeRel
+
+[build.conan]
+profile-host = "default"
+profile-build = "default"
+settings = { "compiler.cppstd" = "gnu23" }
+options = { with_map = false, "qt/*:shared" = true }
+conf = { "tools.build:jobs" = 4, "core:non_interactive" = true }
+build-missing = true
+test-option = "test"                      # toggled on by `wkit test`
+workspace = false                         # `conan workspace build` instead of `conan build`
+args = ["-vwarning"]
+
+[build.cargo]
+toolchain = "stable"
+package = "xlink"
+features = []
+all-features = false
+no-default-features = false
+locked = true
+args = []
+
+[[bin]]
+name = "mms"
+path = "build/{build-type}/bin/mms{exe}"
+args = ["--config", "config/dev.toml"]
+env = { QT_QPA_PLATFORM = "xcb" }
+cwd = "run"
+
+[[bin]]
+name = "xlink"
+package = "xlink"
+
+[test]
+junit-dir = "build/junit"
+
+[[test.suite]]
+runner = "nextest"
+profile = "ci"
+
+[[test.suite]]
+name = "unit"
+runner = "catch2"
+binary = "mms_tests"
+build-dir = "build/{build-type}"
+filter = "~[!benchmark]"
+args = ["--order", "rand"]
+env = { QT_QPA_PLATFORM = "offscreen" }
+
+[[test.suite]]
+runner = "ctest"
+build-dir = "build/{build-type}"
+
+[clean]
+extra = ["run/out", "*.pkg.tar.zst"]      # appended to the defaults; `paths` replaces them
+
+[scripts]
+graph = "conan graph info . --format=html > docs/graph.html"
+golden = { run = ["bash", "scripts/update-golden.sh"], description = "Regenerate golden files" }

@@ -1,0 +1,28 @@
+[package]
+name = "wkit_core"
+description = "Shared primitives for wkit: cargo-style output, processes, versions and project detection"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anstream.workspace = true
+anstyle.workspace = true
+ignore.workspace = true
+indicatif.workspace = true
+jiff.workspace = true
+semver.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+which.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

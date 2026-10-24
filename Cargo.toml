@@ -1,0 +1,46 @@
+[workspace]
+resolver = "3"
+members = [
+    "wkit_core",
+    "wkit_manifest"
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license-file = "LICENSE"
+authors = ["whs31 <kerbalspacefruit@gmail.com>"]
+homepage = "https://github.com/whs31/wkit"
+repository = "https://github.com/whs31/wkit"
+
+[workspace.dependencies]
+wkit_core = { path = "wkit_core" }
+wkit_manifest = { path = "wkit_manifest" }
+
+anstream = "1"
+anstyle = "1"
+ignore = "0.4"
+indicatif = "0.18"
+jiff = "0.2"
+regex = "1"
+semver = "1"
+serde = { version = "1", features = ["derive"] }
+serde_ignored = "0.1"
+thiserror = "2"
+toml = "1"
+which = "8"
+
+tempfile = "3"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+must_use_candidate = "allow"
